@@ -6,8 +6,8 @@ description: >
   scaffold an MCP project, build a documentation search tool, or create
   something like percona-dk for their own docs. Trigger phrases: "create an
   MCP server", "scaffold MCP", "new MCP project", "build a doc search MCP",
-  "like percona-dk but for", "easymcp", "easy mcp". This skill runs the
-  easyMCP CLI interactively or guides manual scaffolding.
+  "like percona-dk but for", "easymcp", "easy mcp". This skill downloads
+  the easyMCP CLI from GitHub and runs it, or guides manual scaffolding.
 ---
 
 # easyMCP — Scaffold Production-Ready MCP Servers
@@ -17,6 +17,7 @@ with a polished cross-platform installer, incremental ingestion pipeline,
 MCP server, REST API, and all the operational polish from percona-dk.
 
 Source: https://github.com/Percona-Lab/easymcp
+Release: https://github.com/Percona-Lab/easymcp/releases/latest
 
 ---
 
@@ -41,12 +42,16 @@ Two language templates:
 
 ## How to Use
 
-### Option 1: Run the CLI (recommended)
+### Option 1: Download and run the CLI (recommended)
 
-If `uv` is installed:
+Download the latest wheel from GitHub releases and run with `uv`:
 
 ```bash
-uvx easymcp init
+# Download the wheel
+curl -fsSL -o /tmp/easymcp.whl https://github.com/Percona-Lab/easymcp/releases/latest/download/easymcp-0.1.0-py3-none-any.whl
+
+# Run it (uv handles the temporary environment automatically)
+uvx --from /tmp/easymcp.whl easymcp init
 ```
 
 If `uv` is not installed, install it first:
@@ -55,10 +60,11 @@ If `uv` is not installed, install it first:
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Node.js users can also use:
+Or install the tool permanently:
 
 ```bash
-npx easymcp init
+uv tool install /tmp/easymcp.whl
+easymcp init
 ```
 
 The CLI will interactively prompt for:

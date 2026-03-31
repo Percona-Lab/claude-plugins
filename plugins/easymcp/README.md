@@ -4,6 +4,8 @@ Scaffold production-ready MCP servers with polished cross-platform installers. L
 
 ## Install
 
+In Claude Code:
+
 ```
 Install this plugin: https://github.com/Percona-Lab/claude-plugins
 ```
@@ -24,10 +26,11 @@ In Claude Code, say:
 - "Scaffold an MCP project like percona-dk"
 - "I want to build a doc search tool for our GitHub repos"
 
-Or run the CLI directly:
+Or download the CLI from the [latest release](https://github.com/Percona-Lab/easymcp/releases/latest) and run directly:
 
 ```bash
-uvx easymcp init
+curl -fsSL -o /tmp/easymcp.whl https://github.com/Percona-Lab/easymcp/releases/latest/download/easymcp-0.1.0-py3-none-any.whl
+uvx --from /tmp/easymcp.whl easymcp init
 ```
 
 ## Source
