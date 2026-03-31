@@ -1,0 +1,8 @@
+{
+  "name": "easymcp",
+  "version": "0.1.0",
+  "author": {"name": "Percona Lab"},
+  "description": "Scaffold production-ready MCP servers with polished cross-platform installers. Like create-react-app but for MCP servers.",
+  "repository": "https://github.com/Percona-Lab/easymcp",
+  "license": "MIT"
+}

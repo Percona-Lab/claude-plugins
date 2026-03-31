@@ -29,6 +29,12 @@
       "description": "Analysis Toolkit for Leveraging All Sources. Cross-functional business analysis reports with visual charts from Percona's data catalog.",
       "source": "./plugins/atlas",
       "category": "productivity"
+    },
+    {
+      "name": "easymcp",
+      "description": "Scaffold production-ready MCP servers with polished cross-platform installers. Like create-react-app but for MCP servers.",
+      "source": "./plugins/easymcp",
+      "category": "developer-tools"
     }
   ]
 }
