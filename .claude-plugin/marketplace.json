@@ -1,0 +1,28 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "percona-lab",
+  "description": "Percona Lab plugins for Claude Code — writing tools, Notion formatting, and marketing content",
+  "owner": {
+    "name": "Percona Lab"
+  },
+  "plugins": [
+    {
+      "name": "mynah",
+      "description": "My Natural Authoring Helper. Learns how you write and composes new messages in your voice.",
+      "source": "./plugins/mynah",
+      "category": "productivity"
+    },
+    {
+      "name": "biner",
+      "description": "Beautiful Intelligent Notion Enhancement & Reformatting. Professional page formatting for Notion.",
+      "source": "./plugins/biner",
+      "category": "productivity"
+    },
+    {
+      "name": "percona-marketing-toolkit",
+      "description": "Percona marketing content toolkit: knowledge base, content/copy writer, and A/B test variant generator.",
+      "source": "./plugins/percona-marketing-toolkit",
+      "category": "productivity"
+    }
+  ]
+}
