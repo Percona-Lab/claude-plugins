@@ -31,9 +31,9 @@
       "category": "productivity"
     },
     {
-      "name": "easymcp",
-      "description": "Scaffold production-ready MCP servers with polished cross-platform installers. Like create-react-app but for MCP servers.",
-      "source": "./plugins/easymcp",
+      "name": "cairn",
+      "description": "CAIRN — Create Any Integration, Run Naturally. Scaffold production-ready MCP servers for any domain: API integrations, doc search, or minimal starters.",
+      "source": "./plugins/cairn",
       "category": "developer-tools"
     }
   ]
