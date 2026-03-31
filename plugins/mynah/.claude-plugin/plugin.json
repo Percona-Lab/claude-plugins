@@ -1,0 +1,8 @@
+{
+  "name": "mynah",
+  "version": "1.0.0",
+  "author": {"name": "Percona Lab"},
+  "description": "My Natural Authoring Helper. Learns how you write across different contexts and languages, stores those patterns in persistent memory, and composes new messages in your voice.",
+  "repository": "https://github.com/Percona-Lab/MYNAH",
+  "license": "MIT"
+}

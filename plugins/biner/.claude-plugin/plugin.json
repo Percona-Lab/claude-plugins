@@ -1,0 +1,8 @@
+{
+  "name": "biner",
+  "version": "2.0.0",
+  "author": {"name": "Percona Lab"},
+  "description": "BINER: Beautiful Intelligent Notion Enhancement & Reformatting. Professional page formatting for Notion, like Prettier but for Notion. Part of the Alpine toolkit.",
+  "repository": "https://github.com/Percona-Lab/BINER",
+  "license": "MIT"
+}
