@@ -95,9 +95,15 @@ These are the standard reports VISTA can generate. Users can request any of thes
 |---|---|---|
 | MySQL | PS, K8SPS, MYR, DISTMYSQL | Percona Server, Kubernetes Operator, MySQL Router, Distribution |
 | PXC | PXC, K8SPXC | Percona XtraDB Cluster and Operator |
-| MongoDB | PSMDB, K8SPSMDB | Percona Server for MongoDB and Operator |
+| MongoDB | PSMDB, K8SPSMDB, PBM | Percona Server for MongoDB, Operator, and Backup |
 | PMM | PMM | Percona Monitoring and Management |
+| PostgreSQL | PG, K8SPG, DISTPG | Percona Distribution for PostgreSQL and Operator |
+| ClusterSync | PCSM | ClusterSync for MongoDB |
+| Percona Toolkit | PT | Percona Toolkit |
+| Packaging | PKG | Build and packaging infrastructure |
 | Docs | DOCS | Documentation |
+
+**IMPORTANT**: Always group and label by **team name** (e.g. "MySQL"), never by raw project key (e.g. "PS"). Roll up all project keys for a team into a single group. Project keys not in the table above get their own group named after the key.
 
 ### Key JQL Patterns
 
@@ -118,12 +124,28 @@ project in (PS, K8SPS) AND status != Done AND status != Closed AND assignee is n
 ### Report Generation for Engineering Visibility
 
 When generating Engineering Visibility reports:
-1. Use `searchJiraIssuesUsingJql` to pull live data from Jira
+1. Use `searchJiraIssuesUsingJql` to pull live data from Jira (Cloud ID: `07843b62-f0f6-4c9c-9c42-aaad27e6ff03`)
 2. Map the user's team name to the correct project keys using the table above
-3. Group issues by epic/parent when available for the Team Status Dashboard
-4. For Cross-Team Dependencies, follow issue links across project boundaries
-5. Always show data freshness ("Jira data as of {timestamp}")
-6. Default time range: current sprint or last 14 days if no sprint context
+3. **Always group by team name**, rolling up project keys using the mapping. Never display raw project keys as group headers.
+4. Group issues by epic/parent when available for the Team Status Dashboard
+5. For Cross-Team Dependencies, follow issue links across project boundaries
+6. Always show data freshness ("Jira data as of {timestamp}")
+7. Default time range: current sprint or last 14 days if no sprint context
+
+### Visualization Requirements
+
+Every Engineering Visibility report MUST include:
+1. **KPI summary cards** at the top (total count, bugs fixed, features, teams active, etc.)
+2. **At least 2 charts** — use Chart.js for HTML or Recharts for React:
+   - Volume by Team (horizontal bar chart with team colors)
+   - Issue Type breakdown (doughnut chart)
+   - Priority distribution (doughnut chart) when relevant
+   - Status distribution (stacked bar) for team status reports
+3. **Team-grouped detail tables** with linked Jira keys, type badges, summary, and assignee
+4. **Percona brand colors**: dark background (#0a1628), green primary (#1A4D2E), orange accent (#FF6B35)
+5. **Releases in Motion** section when parent/epic data shows active releases
+6. See `references/engineering-visibility.md` for detailed blueprints, status color mappings, and layout wireframes
+7. See `references/chart-templates.md` for Recharts and Chart.js code patterns
 
 ### Natural Language Triggers for Engineering Visibility
 - "What's the MySQL team working on?" -> Team Status Dashboard (#23) filtered to MySQL

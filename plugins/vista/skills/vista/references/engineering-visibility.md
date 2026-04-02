@@ -162,11 +162,20 @@ Fields: `summary, status, issuetype, priority, assignee, project, updated, paren
 Default: 7 days. User can specify: "this week", "last sprint", "this month", "last 30 days".
 
 ### Processing
-- Group by project/team
+- **Group by TEAM, not by project key.** Roll up project keys into teams using the mapping from SKILL.md:
+  - MySQL: PS, K8SPS, MYR, DISTMYSQL
+  - PXC: PXC, K8SPXC
+  - MongoDB: PSMDB, K8SPSMDB
+  - PMM: PMM
+  - PostgreSQL: PG, K8SPG, DISTPG
+  - Docs: DOCS
+  - Other: any project key not in the above mapping gets its own group
 - Sort by completion date (most recent first)
 - Highlight milestones: epic completions, release items, high-priority fixes
+- Show "Volume by Team" (not by project) in the summary section
 
 ### Visualization
-- Timeline feed grouped by team
-- Team headers with completion count
+- Timeline feed grouped by **team** (not raw project keys)
+- Team headers with completion count and team name (e.g. "MySQL — 12 done", not "PS — 12 done")
 - Milestone items get a special badge/highlight
+- "Releases in Motion" section should also label by team name
