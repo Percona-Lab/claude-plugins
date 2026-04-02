@@ -1,4 +1,9 @@
-# ATLAS Chart Templates
+# VISTA Chart Templates
+
+**IMPORTANT**: Always import every Recharts component you use. Common missing import: `Legend`. Use this full import line for stacked/grouped charts:
+```jsx
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+```
 
 ## Percona Brand Palette
 
