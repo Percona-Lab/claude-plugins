@@ -93,11 +93,12 @@ These are the standard reports VISTA can generate. Users can request any of thes
 ### Product Team → Jira Project Keys
 | Team | Project Keys | Description |
 |---|---|---|
-| MySQL | PS, K8SPS, MYR, DISTMYSQL | Percona Server, Kubernetes Operator, MySQL Router, Distribution |
-| PXC | PXC, K8SPXC | Percona XtraDB Cluster and Operator |
-| MongoDB | PSMDB, K8SPSMDB, PBM | Percona Server for MongoDB, Operator, and Backup |
+| MySQL | PS, MYR, DISTMYSQL | Percona Server for MySQL, MySQL Router, Distribution |
+| PXC | PXC | Percona XtraDB Cluster |
+| MongoDB | PSMDB, PBM | Percona Server for MongoDB and Backup |
 | PMM | PMM | Percona Monitoring and Management |
-| PostgreSQL | PG, K8SPG, DISTPG | Percona Distribution for PostgreSQL and Operator |
+| PostgreSQL | PG, DISTPG | Percona Distribution for PostgreSQL |
+| Operators | K8SPS, K8SPXC, K8SPSMDB, K8SPG | All Kubernetes Operators (MySQL, PXC, MongoDB, PostgreSQL) |
 | ClusterSync | PCSM | ClusterSync for MongoDB |
 | Percona Toolkit | PT | Percona Toolkit |
 | Packaging | PKG | Build and packaging infrastructure |
@@ -109,7 +110,7 @@ These are the standard reports VISTA can generate. Users can request any of thes
 
 ```
 # Active work for a team (replace project keys as needed)
-project in (PS, K8SPS, MYR, DISTMYSQL) AND status != Done AND status != Closed ORDER BY priority DESC
+project in (PS, MYR, DISTMYSQL) AND status != Done AND status != Closed ORDER BY priority DESC
 
 # Blockers
 project in (PS, K8SPS) AND priority = Blocker AND status != Done

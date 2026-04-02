@@ -48,7 +48,7 @@ The dashboard should render as a single React component with these sections:
 ```
 ┌─────────────────────────────────────────────────────┐
 │  Team Status Dashboard: MySQL                        │
-│  Jira data as of 2026-04-02 | PS, K8SPS, MYR, DISTMYSQL │
+│  Jira data as of 2026-04-02 | PS, MYR, DISTMYSQL         │
 ├─────────────────────────────────────────────────────┤
 │  Summary Cards:                                      │
 │  [Total Active] [In Progress] [Pending Release] [Blockers] │
@@ -109,7 +109,7 @@ Auto-generate 3-5 bullet points:
 
 ### Data Pull
 ```
-project in (PS, K8SPS, PXC, K8SPXC, PSMDB, K8SPSMDB, PMM, DOCS) AND issueFunction in hasLinks() AND status != Done AND status != Closed
+project in (PS, MYR, DISTMYSQL, PXC, PSMDB, PBM, PMM, PG, DISTPG, K8SPS, K8SPXC, K8SPSMDB, K8SPG, PCSM, PT, PKG, DOCS) AND issueFunction in hasLinks() AND status != Done AND status != Closed
 ```
 Fields: `summary, status, issuelinks, project, priority, assignee`
 
@@ -155,7 +155,7 @@ project in (PROJECT_KEYS) AND status != Done AND status != Closed AND assignee i
 
 ### Data Pull
 ```
-project in (PS, K8SPS, PXC, K8SPXC, PSMDB, K8SPSMDB, PMM, DOCS) AND status in (Done, Closed) AND status changed to (Done, Closed) AFTER -{days}d ORDER BY updated DESC
+project in (PS, MYR, DISTMYSQL, PXC, PSMDB, PBM, PMM, PG, DISTPG, K8SPS, K8SPXC, K8SPSMDB, K8SPG, PCSM, PT, PKG, DOCS) AND status in (Done, Closed) AND status changed to (Done, Closed) AFTER -{days}d ORDER BY updated DESC
 ```
 Fields: `summary, status, issuetype, priority, assignee, project, updated, parent`
 
@@ -163,11 +163,15 @@ Default: 7 days. User can specify: "this week", "last sprint", "this month", "la
 
 ### Processing
 - **Group by TEAM, not by project key.** Roll up project keys into teams using the mapping from SKILL.md:
-  - MySQL: PS, K8SPS, MYR, DISTMYSQL
-  - PXC: PXC, K8SPXC
-  - MongoDB: PSMDB, K8SPSMDB
+  - MySQL: PS, MYR, DISTMYSQL
+  - PXC: PXC
+  - MongoDB: PSMDB, PBM
   - PMM: PMM
-  - PostgreSQL: PG, K8SPG, DISTPG
+  - PostgreSQL: PG, DISTPG
+  - Operators: K8SPS, K8SPXC, K8SPSMDB, K8SPG
+  - ClusterSync: PCSM
+  - Percona Toolkit: PT
+  - Packaging: PKG
   - Docs: DOCS
   - Other: any project key not in the above mapping gets its own group
 - Sort by completion date (most recent first)
