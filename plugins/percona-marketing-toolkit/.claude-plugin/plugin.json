@@ -1,8 +1,0 @@
-{
-  "name": "percona-marketing-toolkit",
-  "version": "1.0.0",
-  "author": {"name": "Percona Marketing Team"},
-  "description": "Percona marketing content toolkit: knowledge base, content/copy writer, and A/B test variant generator. Write on-brand Percona copy, test messaging against buyer personas, and generate A/B test variants, all grounded in a shared knowledge base of Percona facts, products, services, and competitive positioning.",
-  "repository": "https://github.com/Percona-Lab/percona-marketing-toolkit",
-  "license": "Apache-2.0"
-}

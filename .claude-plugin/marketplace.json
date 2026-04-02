@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "percona-lab",
-  "description": "Percona Lab plugins for Claude Code — writing tools, Notion formatting, marketing content, and business analysis",
+  "description": "Percona Lab plugins for Claude Code — writing tools, Notion formatting, and business analysis",
   "owner": {
     "name": "Percona Lab"
   },
@@ -18,13 +18,7 @@
       "source": "./plugins/biner",
       "category": "productivity"
     },
-    {
-      "name": "percona-marketing-toolkit",
-      "description": "Percona marketing content toolkit: knowledge base, content/copy writer, and A/B test variant generator.",
-      "source": "./plugins/percona-marketing-toolkit",
-      "category": "productivity"
-    },
-    {
+{
       "name": "vista",
       "description": "Visualized Intelligence from Sources, Trends & Analysis. Cross-functional business analysis reports with visual charts from Percona's data catalog.",
       "source": "./plugins/vista",
