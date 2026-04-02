@@ -1,8 +1,8 @@
 {
   "name": "vista",
   "version": "1.0.1",
-  "description": "VISTA -- Visualized Intelligence from Sources, Trends & Analysis. Cross-functional business analysis reports with visual charts from Percona's data catalog.",
-  "skills": ["skills/vista/SKILL.md"],
-  "author": "Percona-Lab",
-  "repository": "https://github.com/Percona-Lab/VISTA"
+  "author": {"name": "Percona Lab"},
+  "description": "VISTA: Visualized Intelligence from Sources, Trends & Analysis. Cross-functional business analysis reports with visual charts from Percona's data catalog.",
+  "repository": "https://github.com/Percona-Lab/VISTA",
+  "license": "MIT"
 }
