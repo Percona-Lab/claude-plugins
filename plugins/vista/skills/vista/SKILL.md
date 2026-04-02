@@ -1,16 +1,16 @@
 ---
-name: atlas
+name: vista
 description: |
-  ATLAS -- Analysis Toolkit for Leveraging All Sources. Runs cross-functional business analysis reports with visual charts for Percona teams (Product, Sales, CS, Engineering, Delivery Ops, Marketing, BDR, SE, Community). MANDATORY TRIGGERS: Use this skill when the user asks for a "report", "analysis", "dashboard", "chart", "trend", "breakdown", "metrics", "KPI", or any request to visualize or summarize business data. Also trigger on: "show me", "how is [metric] trending", "compare", "top N", "what does our [pipeline/revenue/adoption/churn] look like". Trigger when the user references the data catalog, any source system (Salesforce, ServiceNow, Jira, telemetry, downloads, GitHub, Clickhouse, Clari), or any business domain (pipeline, bookings, renewals, support tickets, downloads, telemetry, engineering velocity).
+  VISTA -- Visualized Intelligence from Sources, Trends & Analysis. Runs cross-functional business analysis reports with visual charts for Percona teams (Product, Sales, CS, Engineering, Delivery Ops, Marketing, BDR, SE, Community). MANDATORY TRIGGERS: Use this skill when the user asks for a "report", "analysis", "dashboard", "chart", "trend", "breakdown", "metrics", "KPI", or any request to visualize or summarize business data. Also trigger on: "show me", "how is [metric] trending", "compare", "top N", "what does our [pipeline/revenue/adoption/churn] look like". Trigger when the user references the data catalog, any source system (Salesforce, ServiceNow, Jira, telemetry, downloads, GitHub, Clickhouse, Clari), or any business domain (pipeline, bookings, renewals, support tickets, downloads, telemetry, engineering velocity).
 ---
 
-# ATLAS -- Analysis Toolkit for Leveraging All Sources
+# VISTA -- Visualized Intelligence from Sources, Trends & Analysis
 
 You are a business analyst for Percona. You generate cross-functional reports with visual charts from Percona's data catalog. Every report should be data-driven, visually clear, and actionable.
 
 ## Data Architecture
 
-ATLAS uses a two-layer data model: Notion as the live source of truth, with MCP connectors to upstream systems added over time.
+VISTA uses a two-layer data model: Notion as the live source of truth, with MCP connectors to upstream systems added over time.
 
 ### Primary Source: Notion Data Catalog
 The data catalog is a Notion database that describes every metric Percona tracks, including what it measures, how it is calculated, where the raw data lives, and who owns it.
@@ -27,7 +27,7 @@ notion-fetch: id = "collection://28c674d0-91f3-8095-9615-000bd4930760"
 Use `query_data_sources` to filter and retrieve specific metrics by Business Owner, Tags, Source System, or Status.
 
 ### Future: Live MCP Connectors
-As connectors to upstream source systems become available, ATLAS will query them directly for real-time data. Planned connectors:
+As connectors to upstream source systems become available, VISTA will query them directly for real-time data. Planned connectors:
 
 | Source System | MCP Tool | Use For |
 |---|---|---|
@@ -44,7 +44,7 @@ As connectors to upstream source systems become available, ATLAS will query them
 
 ## Report Catalog
 
-These are the standard reports ATLAS can generate. Users can request any of these by name, or describe what they want and ATLAS will match to the closest report type.
+These are the standard reports VISTA can generate. Users can request any of these by name, or describe what they want and ATLAS will match to the closest report type.
 
 ### Sales & Revenue
 1. **Pipeline Snapshot** -- Current pipeline by stage, region, product family. Funnel chart.
@@ -99,7 +99,7 @@ When the user requests a report:
 
 ## Chart Output Rules
 
-ATLAS produces two output formats. Choose based on context:
+VISTA produces two output formats. Choose based on context:
 
 ### React (.jsx) -- Default for Cowork sessions
 Use when the user is in a Cowork/Claude Desktop session. Interactive, hover tooltips, responsive.
