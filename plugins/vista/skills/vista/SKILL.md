@@ -1,7 +1,7 @@
 ---
 name: vista
 description: |
-  VISTA -- Visualized Intelligence from Sources, Trends & Analysis. Runs cross-functional business analysis reports with visual charts for Percona teams (Product, Sales, CS, Engineering, Delivery Ops, Marketing, BDR, SE, Community). MANDATORY TRIGGERS: Use this skill when the user asks for a "report", "analysis", "dashboard", "chart", "trend", "breakdown", "metrics", "KPI", or any request to visualize or summarize business data. Also trigger on: "show me", "how is [metric] trending", "compare", "top N", "what does our [pipeline/revenue/adoption/churn] look like". Trigger when the user references the data catalog, any source system (Salesforce, ServiceNow, Jira, telemetry, downloads, GitHub, Clickhouse, Clari), or any business domain (pipeline, bookings, renewals, support tickets, downloads, telemetry, engineering velocity). Also trigger on engineering visibility queries: "what is [team] working on", "what shipped", "team status", "blockers", "dependencies", "workload", "capacity", "how loaded".
+  VISTA -- Visualized Intelligence from Sources, Trends & Analysis. Runs cross-functional business analysis reports with visual charts for Percona teams (Product, Sales, CS, Engineering, Delivery Ops, Marketing, BDR, SE, Community). MANDATORY TRIGGERS: Use this skill when the user asks for a "report", "analysis", "dashboard", "chart", "trend", "breakdown", "metrics", "KPI", or any request to visualize or summarize business data. Also trigger on: "show me", "how is [metric] trending", "compare", "top N", "what does our [pipeline/revenue/adoption/churn] look like". Trigger when the user references the data catalog, any source system (Salesforce, ServiceNow, Jira, telemetry, downloads, GitHub, Clickhouse, Clari), or any business domain (pipeline, bookings, renewals, support tickets, downloads, telemetry, engineering velocity). Also trigger on engineering visibility queries: "what is [team] working on", "what shipped", "team status", "blockers", "dependencies", "workload", "capacity", "how loaded", "highlights", "risks", "wins", "red flags", "what should I know", "what's going on with [team]", "summarize this week".
 ---
 
 # VISTA -- Visualized Intelligence from Sources, Trends & Analysis
@@ -83,6 +83,29 @@ A Notion database synced from PerconaDev Jira. Use only when the Atlassian/Jira 
 - Notion: "Source: Notion Jira Sync (last updated: {Updated timestamp})"
 - Jira: "Source: Jira (perconadev.atlassian.net, queried: {now})"
 
+### Engineering Context: Weekly Status Reports (Notion)
+
+The Product/Engineering/Community team publishes weekly high-level status reports in Notion. These contain curated **Good/Bad** highlights per team — qualitative signals that Jira data alone cannot provide (e.g., staffing changes, partnership updates, strategic risks, morale).
+
+- **Reporting Home Page ID**: `d1f374e5e2264cbe983a43ecc2681f4d`
+- **MCP tool**: `notion-fetch`
+- **Structure**: The Reporting Home lists weekly status pages in reverse chronological order under "High-Level Statuses". Each status page has team sections (MySQL, MongoDB, PostgreSQL, PMM, Operators, Community) with **Good** and **Bad** tables containing bullet-point highlights.
+
+**How to use:**
+1. Fetch the Reporting Home page (`d1f374e5e2264cbe983a43ecc2681f4d`)
+2. Find the most recent "High-Level Status" page link (first entry under High-Level Statuses)
+3. Fetch that page to get the current week's team highlights
+4. Extract the relevant team's Good/Bad items
+5. For historical comparison, fetch the previous week's status page too
+
+**When to include weekly status highlights in reports:**
+- **Always include** when the user asks about team status, risks, blockers, wins, highlights, or "what's going on with [team]"
+- **Always include** for Executive Summary (#20) and Team Status Dashboard (#23) reports
+- **Include when asked** for "what shipped" or sprint reports — add as a "Leadership Highlights" section after the Jira data
+- **Do not include** for pure data queries (workload counts, dependency graphs) unless the user asks
+
+**Rendering**: Show as a "Team Signals" or "Leadership Highlights" card in the report, separate from Jira metrics. Use a left-border card with green for Good items and red for Bad items. Always attribute: "Source: Weekly Status Report (as of {date})".
+
 ### Other MCP Connectors
 
 | Source System | MCP Tool | Use For |
@@ -138,6 +161,7 @@ These are the standard reports VISTA can generate. Users can request any of thes
 24. **Cross-Team Dependencies** -- Dependency graph across teams using Jira issue links (blocks/is blocked by). Matrix + highlighted blockers.
 25. **Workload & Capacity** -- Active issue count per engineer, story point distribution, overload highlighting, backlog depth. Grouped bar chart.
 26. **Cross-Team Communication Feed** -- Recent completions, status changes, and milestones across all teams. Timeline feed grouped by team.
+27. **Team Highlights & Risks** -- Curated Good/Bad highlights from the weekly status reports, combined with Jira data for context. Shows what leadership is flagging per team.
 
 ## Engineering Visibility: Team & Project Mappings
 
@@ -223,6 +247,11 @@ When generating Engineering Visibility reports:
 - "What shipped this week?" / "What did Operators ship last sprint?" -> Cross-Team Communication Feed (#26)
 - "Any blockers on PostgreSQL?" -> Team Status Dashboard (#23) filtered to blockers
 - "Show me engineering status" -> Team Status Dashboard (#23) for all teams
+- "What are the big wins and risks this week?" -> Team Highlights & Risks (#27) for all teams
+- "What's going on with the PostgreSQL team?" -> Team Highlights & Risks (#27) filtered to PostgreSQL + Team Status Dashboard (#23)
+- "Give me the highlights" / "What should I know?" -> Team Highlights & Risks (#27) for all teams
+- "Any red flags across engineering?" -> Team Highlights & Risks (#27), focus on Bad items
+- "Summarize this week for leadership" -> Team Highlights & Risks (#27) + Cross-Team Communication Feed (#26)
 
 ## Report Generation Process
 
@@ -316,6 +345,10 @@ Use when the user needs to share the report, email it, or open it in a browser.
 - "How loaded is the team?" -> Workload & Capacity (#25)
 - "What shipped this week?" -> Cross-Team Communication Feed (#26)
 - "Give me the exec summary" -> Executive Summary (#20)
+- "What are the big wins and risks this week?" -> Team Highlights & Risks (#27)
+- "What's going on with PostgreSQL?" -> Team Highlights & Risks (#27) + Team Status (#23) filtered
+- "Any red flags across engineering?" -> Team Highlights & Risks (#27), Bad items
+- "Summarize this week for leadership" -> Team Highlights (#27) + Communication Feed (#26)
 - "Compare EMEA vs AMER bookings" -> Bookings Trend (#2) with regional split
 - "TAM hours for [customer]" -> TAM Utilization (#11) filtered
 
