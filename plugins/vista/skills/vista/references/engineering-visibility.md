@@ -6,18 +6,9 @@ This reference contains data pull patterns, processing logic, and visualization 
 
 ### Step 1: Pull Data
 
-Use the selected data source (Notion Jira Sync preferred, Jira API fallback).
+Use the selected data source (Jira API preferred, Notion Jira Sync fallback).
 
-#### Option A: Notion Jira Sync
-Query `collection://302674d0-91f3-8087-a698-000b2c337f93` with these filters:
-
-**Active work:** Status != Done AND Status != Closed (filter by Project relation for team scope)
-Fields available: Task name, Key, Status, Assignee, Parent-task, Updated, Due, Blocked by, Is blocking, Fix Versions
-
-**Recently completed:** Status = Done/Closed AND Updated >= {14 days ago}
-Note: `Updated` is an approximation of resolved date (~95% accurate).
-
-#### Option B: Jira API (JQL)
+#### Option A: Jira API (preferred)
 Run three JQL queries for the requested team. Replace `PROJECT_KEYS` with the correct keys from the team mapping.
 
 **Active work (non-epic):**
@@ -37,6 +28,12 @@ Fields: `summary, status, priority, assignee`
 project in (PROJECT_KEYS) AND status in (Done, Closed) AND status changed to (Done, Closed) AFTER -14d ORDER BY updated DESC
 ```
 Fields: `summary, status, issuetype, priority, assignee, parent`
+
+#### Option B: Notion Jira Sync (fallback only)
+Query `collection://302674d0-91f3-8087-a698-000b2c337f93` with filters. **Warning**: Notion sync returns significantly fewer results than Jira API (~14% in testing). Use only when Jira API is unavailable.
+
+**Active work:** Status != Done AND Status != Closed (filter by Project relation for team scope)
+**Recently completed:** Status = Done/Closed AND Updated >= {14 days ago}
 
 ### Step 2: Process Data
 
@@ -121,11 +118,7 @@ Auto-generate 3-5 bullet points:
 
 ### Data Pull
 
-#### Option A: Notion Jira Sync (preferred)
-Query all issues where `Blocked by` or `Is blocking` relations are non-empty, AND Status != Done/Closed.
-The Notion sync has explicit `Blocked by` and `Is blocking` relation fields — no need for `issueFunction`.
-
-#### Option B: Jira API
+#### Option A: Jira API (preferred)
 ```
 project in (PS, MYR, DISTMYSQL, PXC, PSMDB, PBM, PMM, PG, DISTPG, K8SPS, K8SPXC, K8SPSMDB, K8SPG, PCSM, PT, PKG, DOCS) AND issueFunction in hasLinks() AND status != Done AND status != Closed
 ```
@@ -133,8 +126,12 @@ Fields: `summary, status, issuelinks, project, priority, assignee`
 
 Note: `issueFunction` may not be available on all Jira instances. Fallback: pull all active issues and filter client-side for those with `issuelinks`.
 
+#### Option B: Notion Jira Sync (fallback)
+Query all issues where `Blocked by` or `Is blocking` relations are non-empty, AND Status != Done/Closed.
+The Notion sync has explicit relation fields for blocking — but data may be incomplete.
+
 ### Processing
-- Extract blocking relationships from Notion relations (Blocked by / Is blocking) or Jira issue links
+- Extract blocking relationships from Jira issue links or Notion relations (Blocked by / Is blocking)
 - Build a matrix: rows = blocking team, columns = blocked team
 - Highlight cross-project links (same-project links are less interesting)
 
@@ -148,10 +145,7 @@ Note: `issueFunction` may not be available on all Jira instances. Fallback: pull
 
 ### Data Pull
 
-#### Option A: Notion Jira Sync
-Query issues where Status != Done/Closed, filtered by Project relation for team scope. Group by Assignee. Count issues with empty Assignee separately.
-
-#### Option B: Jira API
+#### Option A: Jira API (preferred)
 ```
 project in (PROJECT_KEYS) AND status != Done AND status != Closed AND assignee is not EMPTY ORDER BY assignee
 ```
@@ -161,6 +155,9 @@ Also pull unassigned count:
 ```
 project in (PROJECT_KEYS) AND status != Done AND status != Closed AND assignee is EMPTY
 ```
+
+#### Option B: Notion Jira Sync (fallback)
+Query issues where Status != Done/Closed, filtered by Project relation for team scope. Group by Assignee. Data may be incomplete.
 
 ### Processing
 - Count active issues per assignee
@@ -178,16 +175,16 @@ project in (PROJECT_KEYS) AND status != Done AND status != Closed AND assignee i
 
 ### Data Pull
 
-#### Option A: Notion Jira Sync
-Query issues where Status = Done/Closed AND Updated >= {days ago}. Returns all recently completed items across all synced projects.
-
-#### Option B: Jira API
+#### Option A: Jira API (preferred)
 ```
 project in (PS, MYR, DISTMYSQL, PXC, PSMDB, PBM, PMM, PG, DISTPG, K8SPS, K8SPXC, K8SPSMDB, K8SPG, PCSM, PT, PKG, DOCS) AND status in (Done, Closed) AND status changed to (Done, Closed) AFTER -{days}d ORDER BY updated DESC
 ```
 Fields: `summary, status, issuetype, priority, assignee, project, updated, parent`
 
 Default: 7 days. User can specify: "this week", "last sprint", "this month", "last 30 days".
+
+#### Option B: Notion Jira Sync (fallback)
+Query issues where Status = Done/Closed AND Updated >= {days ago}. **Warning**: returns significantly fewer results than Jira API.
 
 ### Processing
 - **Group by TEAM, not by project key.** Roll up project keys into teams using the mapping from SKILL.md:
