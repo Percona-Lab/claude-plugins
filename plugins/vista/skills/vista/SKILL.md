@@ -26,21 +26,92 @@ notion-fetch: id = "collection://28c674d0-91f3-8095-9615-000bd4930760"
 
 Use `query_data_sources` to filter and retrieve specific metrics by Business Owner, Tags, Source System, or Status.
 
-### Future: Live MCP Connectors
-As connectors to upstream source systems become available, VISTA will query them directly for real-time data. Planned connectors:
+### Engineering Data: Notion Jira Sync + Direct Jira API
+
+VISTA supports two sources for engineering metrics. It auto-detects which are available and uses the best one.
+
+#### Source A: Notion Jira Sync (preferred when available)
+A Notion database synced from PerconaDev Jira. Faster queries, no Jira rate limits, includes custom fields not in Jira API.
+
+- **Database ID**: `302674d091f38075a15bd39373572e40`
+- **Data Source ID**: `collection://302674d0-91f3-8087-a698-000b2c337f93`
+- **MCP tool**: `notion-fetch`, `query_data_sources`
+
+**Available fields:**
+| Field | Type | Use For |
+|---|---|---|
+| Task name | title | Issue summary |
+| Key | text | Jira issue key (e.g. PS-10891) |
+| Status | status | Active/done filtering |
+| Updated | date | Approximate resolved date (use for "recently completed" queries) |
+| Due | date | Due date tracking |
+| Assignee | person | Workload, attribution |
+| Project | relation | Map to team via project keys |
+| Parent-task | relation | Epic/initiative grouping |
+| Sub-tasks | relation | Issue hierarchy |
+| Blocked by | relation | Dependency tracking |
+| Is blocking | relation | Dependency tracking |
+| Fix Versions | formula | Release tracking |
+| Engineering Notes | text | Context not available in Jira API |
+| ESCALATION DATE | date | Escalation tracking |
+| ESCALATION NOTES | text | Escalation context |
+| Attachment | file | Linked files |
+
+**Querying the Notion sync:**
+- Filter by Status (Done/Closed) + Updated date for "recently completed"
+- Filter by Project relation to scope to a team
+- Filter by Status != Done/Closed for active work
+- Use Blocked by / Is blocking relations for dependency reports
+
+**Limitation**: The `Updated` field is not a precise "resolved date" — it's the last-modified timestamp. For recently completed queries, filter `Status = Done AND Updated >= {date}`. This is ~95% accurate; rare false positives from post-completion edits.
+
+#### Source B: Direct Jira API (fallback / real-time)
+Live queries against Jira Cloud. Use when Notion sync is unavailable, when the user explicitly requests fresh data, or for queries that need JQL-specific features.
+
+- **MCP tool**: `searchJiraIssuesUsingJql`, `getJiraIssue`
+- **Cloud ID**: `07843b62-f0f6-4c9c-9c42-aaad27e6ff03`
+
+**Use Jira API instead of Notion sync when:**
+- User says "pull fresh from Jira", "real-time", or "live data"
+- Query needs `status changed to Done AFTER` (precise transition date)
+- Query needs `issueFunction in hasLinks()` (link-based filtering)
+- A project key doesn't exist in the Notion sync yet
+
+#### Data Source Selection Logic
+
+```
+1. Check available MCP tools:
+   - notion-fetch available? → NOTION = true
+   - searchJiraIssuesUsingJql available? → JIRA = true
+
+2. Select source:
+   - NOTION + JIRA → Use Notion (faster), fall back to Jira if needed
+   - NOTION only  → Use Notion, warn if query would benefit from live Jira
+   - JIRA only    → Use Jira API directly
+   - Neither      → Tell user: "Enable the Notion or Atlassian connector to run engineering reports"
+
+3. User override (always respected):
+   - "use Jira" / "pull fresh" / "real-time" → Force Jira API
+   - "use Notion sync" → Force Notion sync
+```
+
+**Always state the source in report headers:**
+- Notion: "Source: Notion Jira Sync (last updated: {Updated timestamp})"
+- Jira: "Source: Jira (perconadev.atlassian.net, queried: {now})"
+
+### Other MCP Connectors
 
 | Source System | MCP Tool | Use For |
 |---|---|---|
 | Salesforce | (planned) | Pipeline, bookings, renewals, customer data |
 | ServiceNow | (planned) | Support tickets, cases, SLA metrics |
-| Jira | searchJiraIssuesUsingJql, getJiraIssue | Engineering velocity, bug counts, sprint data |
 | Slack | slack_search_public, slack_read_channel | Signal detection, team sentiment |
 | Google Drive | google_drive_search, google_drive_fetch | Reports, docs, shared analysis |
 | Clickhouse | (planned) | Download stats, telemetry aggregates |
 | Pillars telemetry | (planned) | Feature activation, deployment patterns |
 | PostHog | (planned) | Docs analytics, user engagement |
 
-**Data freshness rule**: Live MCP connector > Notion catalog. Always state the data source and freshness in report headers. When a connector is not yet available, use the Notion catalog entry to describe the metric and note that live data is pending.
+**Data freshness rule**: Live MCP connector > Notion sync > Notion catalog. Always state the data source and freshness in report headers. When a connector is not yet available, use the Notion catalog entry to describe the metric and note that live data is pending.
 
 ## Report Catalog
 
@@ -125,13 +196,15 @@ project in (PS, K8SPS) AND status != Done AND status != Closed AND assignee is n
 ### Report Generation for Engineering Visibility
 
 When generating Engineering Visibility reports:
-1. Use `searchJiraIssuesUsingJql` to pull live data from Jira (Cloud ID: `07843b62-f0f6-4c9c-9c42-aaad27e6ff03`)
-2. Map the user's team name to the correct project keys using the table above
-3. **Always group by team name**, rolling up project keys using the mapping. Never display raw project keys as group headers.
-4. Group issues by epic/parent when available for the Team Status Dashboard
-5. For Cross-Team Dependencies, follow issue links across project boundaries
-6. Always show data freshness ("Jira data as of {timestamp}")
-7. Default time range: current sprint or last 14 days if no sprint context
+1. **Select data source** using the Data Source Selection Logic above (Notion-first, Jira fallback)
+2. **If using Notion sync**: query `collection://302674d0-91f3-8087-a698-000b2c337f93` with filters for Status, Project, Updated date. Map Project relations to team names using the table above.
+3. **If using Jira API**: use `searchJiraIssuesUsingJql` with Cloud ID `07843b62-f0f6-4c9c-9c42-aaad27e6ff03`
+4. Map the user's team name to the correct project keys using the table above
+5. **Always group by team name**, rolling up project keys using the mapping. Never display raw project keys as group headers.
+6. Group issues by epic/parent when available for the Team Status Dashboard
+7. For Cross-Team Dependencies: use Blocked by/Is blocking relations (Notion) or issue links (Jira)
+8. Always show data source and freshness in the report header
+9. Default time range: current sprint or last 14 days if no sprint context
 
 ### Visualization Requirements
 
@@ -144,14 +217,14 @@ When generating Engineering Visibility reports:
 - Charts: dark grid lines (`#1f2937`), light axis text (`#9ca3af`)
 
 **Required sections (in order):**
-1. **Title + metadata** — report name, date range, "Source: Jira (perconadev.atlassian.net)"
+1. **Title + metadata** — report name, date range, source attribution (see Data Source Selection Logic)
 2. **KPI summary cards** — dark cards with colored values (red=bugs, green=features, orange=total)
 3. **Volume by Team chart** — horizontal stacked bar, bars colored by issue type, sorted by volume
 4. **Issue Type + Priority/Contributor charts** — doughnut + horizontal bar side by side
 5. **Key Initiatives / Releases in Motion** — cards with team color left-border and item lists
 6. **Team-grouped detail tables** — linked Jira keys, type badges, summary, assignee
 7. **Key Findings** — 3-5 auto-generated bullets
-8. **Footer** — "Generated by VISTA | date | perconadev.atlassian.net"
+8. **Footer** — "Generated by VISTA | date | {data source}"
 
 **Technical:**
 - Use Recharts for React (Cowork). Import ALL components including `Legend`.
