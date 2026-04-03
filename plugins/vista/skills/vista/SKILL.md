@@ -339,6 +339,7 @@ When the user requests a report:
    - Key findings (3-5 bullet points)
    - The chart/visualization
    - Recommended actions (if applicable)
+7. **After every report**, ask: "Would you like me to generate a shareable HTML version of this report?" This gives the user an easy path to share via email or browser without needing to know about the HTML option.
 
 ## Chart Output Rules
 
