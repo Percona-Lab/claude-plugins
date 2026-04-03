@@ -185,6 +185,26 @@ These are the standard reports VISTA can generate. Users can request any of thes
 
 **IMPORTANT**: Always group and label by **team name** (e.g. "MySQL"), never by raw project key (e.g. "PS"). Roll up all project keys for a team into a single group. Project keys not in the table above get their own group named after the key.
 
+### Sprint Data
+
+**CRITICAL**: Sprint cadence varies by team. NEVER assume a fixed sprint length. Always pull the actual sprint dates from Jira using `customfield_10020` (sprint field).
+
+**How to resolve "last sprint" queries:**
+1. Query for the team's most recently closed sprint: `project in (PROJECT_KEYS) AND sprint in closedSprints() ORDER BY updated DESC` with `fields: ["customfield_10020"]`
+2. The `customfield_10020` field returns an array of sprint objects. Find the one with `state: "closed"` and the most recent `completeDate`.
+3. Each sprint object contains: `name`, `startDate`, `endDate`, `completeDate`, `goal`, `state`
+4. Use the sprint's `startDate` and `endDate` as the date range for the report
+5. Use `sprint = "{sprint name}"` in JQL to filter to that specific sprint
+
+**Known sprint cadences** (may change — always verify from the data):
+| Team | Example Sprint Name | Typical Duration |
+|---|---|---|
+| MySQL | "MySQL Sprint March 2026" | ~1 month (1st to end of month) |
+| MongoDB | "MongoDB Server 36" | ~2 weeks |
+| PostgreSQL | "Sprint 31" | ~2 weeks (last active sprints were late 2025) |
+
+**Sprint goals**: The `goal` field in sprint objects often contains release targets and key deliverables. Include these in reports when available — they provide context that individual tickets don't.
+
 ### Key JQL Patterns
 
 ```
@@ -194,7 +214,13 @@ project in (PS, MYR, DISTMYSQL) AND status != Done AND status != Closed ORDER BY
 # Blockers
 project in (PS, K8SPS) AND priority = Blocker AND status != Done
 
-# Recently completed (configurable days)
+# What shipped in a specific sprint (use actual sprint name from data)
+project in (PS, MYR, DISTMYSQL) AND sprint = "MySQL Sprint March 2026" AND status in (Done, Closed)
+
+# What shipped in the last closed sprint (auto-detect)
+project in (PS, MYR, DISTMYSQL) AND sprint in closedSprints() AND status in (Done, Closed) ORDER BY updated DESC
+
+# Recently completed (fallback when no sprint data)
 project in (PS, K8SPS) AND status changed to Done AFTER -7d
 
 # Workload by assignee
@@ -208,11 +234,12 @@ When generating Engineering Visibility reports:
 2. **If using Jira API**: use `searchJiraIssuesUsingJql` with Cloud ID `07843b62-f0f6-4c9c-9c42-aaad27e6ff03`
 3. **If using Notion sync (fallback)**: query `collection://302674d0-91f3-8087-a698-000b2c337f93` with filters for Status, Project, Updated date. Warn that data may be incomplete.
 4. Map the user's team name to the correct project keys using the table above
-5. **Always group by team name**, rolling up project keys using the mapping. Never display raw project keys as group headers.
-6. Group issues by epic/parent when available for the Team Status Dashboard
-7. For Cross-Team Dependencies: use Blocked by/Is blocking relations (Notion) or issue links (Jira)
-8. Always show data source and freshness in the report header
-9. Default time range: current sprint or last 14 days if no sprint context
+5. **When the user says "last sprint"**: resolve the actual sprint dates from Jira (see Sprint Data above). NEVER default to 14 days — sprint lengths vary by team.
+6. **Always group by team name**, rolling up project keys using the mapping. Never display raw project keys as group headers.
+7. Group issues by epic/parent when available for the Team Status Dashboard
+8. For Cross-Team Dependencies: use Blocked by/Is blocking relations (Notion) or issue links (Jira)
+9. Always show data source, sprint name, and date range in the report header
+9. Default time range: resolve actual sprint dates from Jira (see Sprint Data section). Fall back to last 14 days only if sprint data is unavailable.
 
 ### Visualization Requirements
 

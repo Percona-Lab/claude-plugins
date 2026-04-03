@@ -23,17 +23,29 @@ project in (PROJECT_KEYS) AND issuetype = Epic AND status != Done AND status != 
 ```
 Fields: `summary, status, priority, assignee`
 
-**Recently completed (trailing 14 days):**
+**Recently completed (sprint-aware):**
+
+**IMPORTANT**: When the user says "last sprint", resolve the actual sprint from Jira first:
+1. Query with `fields: ["customfield_10020"]` to get sprint objects
+2. Find the most recently closed sprint (by `completeDate`)
+3. Use the sprint name in JQL:
+```
+project in (PROJECT_KEYS) AND sprint = "SPRINT_NAME" AND status in (Done, Closed) ORDER BY updated DESC
+```
+Fields: `summary, status, issuetype, priority, assignee, parent, customfield_10020`
+
+**Fallback** (when sprint data unavailable or user specifies a time range):
 ```
 project in (PROJECT_KEYS) AND status in (Done, Closed) AND status changed to (Done, Closed) AFTER -14d ORDER BY updated DESC
 ```
-Fields: `summary, status, issuetype, priority, assignee, parent`
+
+Include the sprint goal in the report header when available (from `customfield_10020[].goal`).
 
 #### Option B: Notion Jira Sync (fallback only)
-Query `collection://302674d0-91f3-8087-a698-000b2c337f93` with filters. **Warning**: Notion sync returns significantly fewer results than Jira API (~14% in testing). Use only when Jira API is unavailable.
+Query `collection://302674d0-91f3-8087-a698-000b2c337f93` with filters. **Warning**: Notion sync returns significantly fewer results than Jira API (~14% in testing). Use only when Jira API is unavailable. Notion sync does NOT have sprint data.
 
 **Active work:** Status != Done AND Status != Closed (filter by Project relation for team scope)
-**Recently completed:** Status = Done/Closed AND Updated >= {14 days ago}
+**Recently completed:** Status = Done/Closed AND Updated >= {sprint end date or 14 days ago}
 
 ### Step 2: Process Data
 
@@ -176,10 +188,20 @@ Query issues where Status != Done/Closed, filtered by Project relation for team 
 ### Data Pull
 
 #### Option A: Jira API (preferred)
+
+**When user says "last sprint"**: Resolve each team's most recently closed sprint using `customfield_10020`. Different teams may have different sprint dates — report per-team sprint ranges.
+```
+project in (PROJECT_KEYS) AND sprint = "SPRINT_NAME" AND status in (Done, Closed) ORDER BY updated DESC
+```
+
+**For cross-team queries**: Run separate sprint lookups per team, since sprint cadences vary (MySQL = monthly, MongoDB = bi-weekly, etc.). Group results by team with each team's sprint name and dates in the output.
+
+**When user specifies a time range** ("this week", "last 30 days"):
 ```
 project in (PS, MYR, DISTMYSQL, PXC, PSMDB, PBM, PMM, PG, DISTPG, K8SPS, K8SPXC, K8SPSMDB, K8SPG, PCSM, PT, PKG, DOCS) AND status in (Done, Closed) AND status changed to (Done, Closed) AFTER -{days}d ORDER BY updated DESC
 ```
-Fields: `summary, status, issuetype, priority, assignee, project, updated, parent`
+
+Fields: `summary, status, issuetype, priority, assignee, project, updated, parent, customfield_10020`
 
 Default: 7 days. User can specify: "this week", "last sprint", "this month", "last 30 days".
 
