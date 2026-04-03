@@ -135,7 +135,7 @@ When generating Engineering Visibility reports:
 
 ### Visualization Requirements
 
-Every Engineering Visibility report MUST use the same visual style. **All reports must look consistent.**
+**EVERY VISTA report MUST use the same visual style — Engineering Visibility, Business Analytics, Pipeline, Downloads, Telemetry, or any other report type. ALL reports must look consistent. There are NO exceptions.**
 
 **MANDATORY dark theme** — never use white or light backgrounds:
 - Page: `bg-gray-950` (#0a1628) with `text-gray-100`
