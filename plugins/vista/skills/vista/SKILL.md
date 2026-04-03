@@ -303,6 +303,7 @@ When generating Engineering Visibility reports:
 
 **Technical:**
 - Use Recharts for React (Cowork). Import ALL components including `Legend`.
+- **Horizontal bar charts with names**: ALWAYS set `YAxis width={150}` minimum to prevent name truncation. Use `layout="vertical"`, dynamic height `Math.max(300, data.length * 45)`.
 - Use Chart.js for HTML. See `references/chart-templates.md` for patterns.
 - See `references/engineering-visibility.md` for detailed blueprints and wireframes.
 - Percona brand colors: green primary (#1A4D2E), orange accent (#FF6B35)

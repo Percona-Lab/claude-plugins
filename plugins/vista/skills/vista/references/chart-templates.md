@@ -111,6 +111,50 @@ export default function FunnelReport() {
 }
 ```
 
+## React Template: Horizontal Bar Chart (Contributors / Ranked Lists)
+
+**IMPORTANT**: For horizontal bar charts with person names on the Y-axis, ALWAYS set `YAxis width={150}` (or more) to prevent name truncation. Long names like "Hrvoje Matijakovic" or "Jaideep Karande" will wrap and get cut off at the default width.
+
+```jsx
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer
+} from "recharts";
+
+const COLORS = { Bug: "#F44336", Improvement: "#4CAF50", Task: "#2196F3", "New Feature": "#9C27B0" };
+
+export default function ContributorBreakdown() {
+  const data = [/* { name: "Yura Sorokin", Bug: 3, Improvement: 2, Task: 8, "New Feature": 1 } */];
+
+  return (
+    <ResponsiveContainer width="100%" height={Math.max(300, data.length * 45)}>
+      <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+        <XAxis type="number" tick={{ fill: "#9ca3af", fontSize: 12 }} />
+        <YAxis
+          type="category"
+          dataKey="name"
+          width={150}
+          tick={{ fill: "#d1d5db", fontSize: 12 }}
+        />
+        <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151" }} />
+        <Legend />
+        {Object.entries(COLORS).map(([key, color]) => (
+          <Bar key={key} dataKey={key} stackId="a" fill={color} name={key} />
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+```
+
+**Key rules for horizontal bars:**
+- `layout="vertical"` on `<BarChart>`
+- `YAxis width={150}` minimum for person names — increase to 180 if names are very long
+- `type="category"` on YAxis, `type="number"` on XAxis
+- Dynamic height: `Math.max(300, data.length * 45)` to prevent cramming
+- Sort data by total descending before rendering
+
 ## React Template: Grouped Bar Chart (Comparison)
 
 ```jsx
