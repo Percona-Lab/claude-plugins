@@ -106,6 +106,24 @@ The Product/Engineering/Community team publishes weekly high-level status report
 
 **Rendering**: Show as a "Team Signals" or "Leadership Highlights" card in the report, separate from Jira metrics. Use a left-border card with green for Good items and red for Bad items. Always attribute: "Source: Weekly Status Report (as of {date})".
 
+### Telemetry & Download Data: vista-data MCP Server (LIVE)
+
+Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (download analytics) via the `vista-data` MCP server.
+
+**IMPORTANT: Before writing any telemetry or download query, read the data dictionary reference file `references/vista-data-dictionary.md`. It contains the complete schema, field values, access patterns, and pre-built query templates. Do NOT call discovery tools (`es_list_indices`, `es_get_mapping`, `ch_list_databases`, `ch_list_tables`, `ch_describe_table`) — go straight to the query using the reference.**
+
+| Source | MCP Tools | Use For |
+|---|---|---|
+| ClickHouse (telemetryd) | `query_clickhouse` | Active instances, version distribution, deployment types, CPU arch, cloud providers, PMM servers, Everest deployments |
+| Elasticsearch (downloads) | `search_elasticsearch` | Package downloads by product/type/OS, download trends, geographic distribution |
+
+**Key facts for fast queries:**
+- **ES index**: Always use `*` as index (individual indices return 403)
+- **ES fields**: All download data is under `parsed.*` namespace (e.g., `parsed.product.keyword`, `parsed.package_type.keyword`)
+- **CH database**: `telemetryd` — main table is `pillars_telemetry_phase_1`
+- **CH products**: `postgresql`, `ps` (MySQL), `psmdb` (MongoDB), `pxc` (XtraDB Cluster)
+- **Unique instances**: Use `uniqExact(host_instance_id)`, not `count()`
+
 ### Other MCP Connectors
 
 | Source System | MCP Tool | Use For |
@@ -114,8 +132,6 @@ The Product/Engineering/Community team publishes weekly high-level status report
 | ServiceNow | (planned) | Support tickets, cases, SLA metrics |
 | Slack | slack_search_public, slack_read_channel | Signal detection, team sentiment |
 | Google Drive | google_drive_search, google_drive_fetch | Reports, docs, shared analysis |
-| Clickhouse | (planned) | Download stats, telemetry aggregates |
-| Pillars telemetry | (planned) | Feature activation, deployment patterns |
 | PostHog | (planned) | Docs analytics, user engagement |
 
 **Data freshness rule**: Live MCP connector > Notion sync > Notion catalog. Always state the data source and freshness in report headers. When a connector is not yet available, use the Notion catalog entry to describe the metric and note that live data is pending.
