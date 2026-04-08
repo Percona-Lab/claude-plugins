@@ -29,11 +29,11 @@ Percona tracks two complementary signals for product health:
 | **Product downloads** by type/OS/version | ES: `*` | Product | Count of download events per `parsed.product` | Validated metric. Segmented by: IP, date, country, city, version, OS, CPU arch, cloud provider |
 | **Download growth rate** (MoM) | ES: `*` | Product | % change in monthly downloads per product | Proposed metric — not yet dashboarded |
 | **EOL package downloads** | ES: `*` | Product | Downloads where `url.original.keyword: /private/*` | Tracks customers still downloading end-of-life versions |
-| **Pro-builds downloads** | ES: `*` | Product | Downloads where package name matches `*pro*` | Tracks Percona Pro (commercial) package adoption |
+| **Pro-builds downloads** | ES: `*` | ~~Product~~ N/A | Downloads where package name matches `*pro*` | **DISCONTINUED** — Pro-builds are no longer offered. Historical data only. |
 | **Product combination downloads** | ES: `*` | Product | Co-downloads from same IP in 24h window | Proposed — shows which tools are seen as essential companions |
 | **Software deployments** | CH: `pillars_telemetry_phase_1` | Strategic | Count of telemetry events | Based on requirements from DO-19 |
 | **Kubernetes Operators metrics** | ES (separate cluster) | Engineering | Operator usage from telemetry | Dashboard exists at Kibana |
-| **Everest managed clusters** | CH: `everest_telemetry` | Product | `pxc_count + psmdb_count + pg_count` per Everest instance | Weekly unique clusters target: 25.5K (Q3). Was 20.2K as of Aug 2025 |
+| **Everest managed clusters** | CH: `everest_telemetry` | ~~Product~~ N/A | `pxc_count + psmdb_count + pg_count` per Everest instance | **DISCONTINUED** — Everest is now "Open Everest", independent of Percona. Historical data only. |
 | **PMM active servers** | CH: `pmm_metrics` | Product | `uniqExact(pmm_server_telemetry_id)` in last 30d | Can segment by customer tier |
 
 ### Known Data Quality Issues
@@ -41,6 +41,8 @@ Percona tracks two complementary signals for product health:
 - **PostgreSQL telemetry is unreliable**: Per Jan W. (Product), the PG telemetry data contains CI/CD pipeline noise, not real adoption data. Anomalies have been confirmed. The team is aware but has no resources to fix it currently. **When reporting PG active instances, add a caveat about data quality.**
 - **`parsed.version`** in ES is often empty for PostgreSQL. Use `parsed.major_version` instead, or extract version from `parsed.package_name`.
 - **DockerHub metrics** in ClickHouse are a 2-month historical snapshot only (Oct-Nov 2023). Not useful for current analysis.
+- **Everest** is no longer a Percona product — it is now "Open Everest", an independent open-source project. The `everest_telemetry` table is historical data only. Do NOT include in Percona product reports.
+- **Pro-builds** are discontinued — Percona no longer offers Pro-builds (commercial package builds). Historical download data exists but must be labeled as discontinued.
 
 ---
 
@@ -225,8 +227,8 @@ All download-specific fields are under the `parsed.*` namespace:
 }
 ```
 
-**8. Pro-builds adoption:**
-> "How are Pro-builds downloads trending?"
+**8. Pro-builds adoption (DISCONTINUED — historical only):**
+> "How were Pro-builds downloads trending before discontinuation?"
 ```json
 {
   "size": 0,
@@ -399,8 +401,8 @@ WHERE create_date >= today() - 30
 GROUP BY product_family
 ```
 
-**9. Everest managed clusters:**
-> "How many clusters is Everest managing?"
+**9. Everest managed clusters (DISCONTINUED — Open Everest, no longer Percona):**
+> "How many clusters was Everest managing before it was spun out?"
 ```sql
 SELECT uniqExact(host_instance_id) as deployments,
        sum(pxc_count) as pxc_clusters, sum(psmdb_count) as psmdb_clusters, sum(pg_count) as pg_clusters,
