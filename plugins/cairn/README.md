@@ -2,23 +2,85 @@
 
 **Create Any Integration, Run Naturally.** Scaffold production-ready MCP servers for any domain.
 
-Part of the [Alpine Toolkit](https://github.com/Percona-Lab).
+Named for the stacked stone trail markers that guide climbers on mountain paths. Part of the [Alpine Toolkit](https://github.com/Percona-Lab).
+
+## What it does
+
+CAIRN generates complete, standalone MCP server projects. You pick a project type, answer a few prompts, and get a working project ready to push to GitHub.
+
+**Three project types:**
+
+| Type | What it builds | Example |
+|------|---------------|---------|
+| **API integration** | Wrap an external REST API as MCP tools | Slack, Jira, Stripe connectors |
+| **Doc search** | Semantic search over GitHub repos with Markdown | percona-dk, internal docs servers |
+| **Starter** | Minimal MCP server with one example tool | Quick prototypes, custom tools |
 
 ## Install
 
-In Claude Code:
+**As a Claude Code plugin (recommended):**
+
+In Claude Code, say:
+```
+Install this plugin: https://github.com/Percona-Lab/CAIRN
+```
+
+Or download [`cairn-plugin.zip`](https://github.com/Percona-Lab/CAIRN/releases/latest/download/cairn-plugin.zip) from the latest release and upload it via Claude Code's plugin installer.
+
+Then ask Claude: "Create a new MCP server" or "Scaffold an API integration for Slack"
+
+**Or run the CLI directly:**
+
+```bash
+curl -fsSL -o /tmp/cairn.whl \
+  https://github.com/Percona-Lab/CAIRN/releases/latest/download/cairn_mcp-0.2.0-py3-none-any.whl
+uvx --from /tmp/cairn.whl cairn init
+```
+
+Requires [uv](https://docs.astral.sh/uv/). Install with: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+
+## What gets generated
+
+### API integration (Python example)
 
 ```
-Install this plugin: https://github.com/Percona-Lab/claude-plugins
+slack-mcp/
+  .gitignore, LICENSE, .env.example, README.md
+  pyproject.toml
+  src/slack_mcp/
+    connector.py       # API client class with auth + methods
+    mcp_server.py      # FastMCP server wrapping connector as tools
 ```
 
-## Usage
+### Doc search (Python example)
 
-- "Create a new MCP server for our Slack integration"
-- "Scaffold an API integration for Stripe"
-- "Build a doc search MCP like percona-dk for our internal docs"
-- "Create a minimal MCP server starter"
+```
+acme-dk/
+  install-acme-dk          # curl|bash one-liner
+  install-acme-dk.ps1      # irm|iex one-liner
+  installer.py             # Cross-platform interactive installer
+  .gitignore, LICENSE, .env.example, README.md
+  pyproject.toml
+  src/acme_dk/
+    mcp_server.py          # FastMCP with auto-refresh
+    ingest.py              # Incremental ingestion pipeline
+    server.py              # FastAPI REST API
+    source_registry.py     # Source suggestions
+```
 
-## Source
+### Starter
 
-https://github.com/Percona-Lab/CAIRN
+```
+my-tool/
+  .gitignore, LICENSE, README.md
+  pyproject.toml (or package.json)
+  src/my_tool/mcp_server.py (or src/mcp-server.js)
+```
+
+## Language support
+
+Both Python (FastMCP) and Node.js (@modelcontextprotocol/sdk) templates for all project types.
+
+## License
+
+MIT
