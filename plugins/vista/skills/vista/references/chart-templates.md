@@ -253,6 +253,185 @@ export default function ComparisonReport() {
 </html>
 ```
 
+## React Template: Cascade KPI Tracker (Progress Toward Target)
+
+Use this template for Layout C (#28). The status banner, progress bar, and KPI cards are the core — they must appear identically every time.
+
+```jsx
+import { useState } from "react";
+import {
+  ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer, ReferenceLine,
+  BarChart, Bar, Cell
+} from "recharts";
+
+// --- Status logic ---
+const getStatus = (actual, required) => {
+  const pct = actual / required;
+  if (pct >= 1.0) return { label: "ON TRACK", bg: "#065f46", color: "#ecfdf5" };
+  if (pct >= 0.98) return { label: "AT RISK", bg: "#92400e", color: "#fffbeb" };
+  return { label: "OFF TRACK", bg: "#991b1b", color: "#fef2f2" };
+};
+
+// --- Progress bar component ---
+const ProgressBar = ({ baseline, current, target, status }) => {
+  const range = target - baseline;
+  const progress = Math.max(0, Math.min(1, (current - baseline) / range));
+  const pct = (progress * 100).toFixed(1);
+  return (
+    <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 mb-4">
+      <div className="flex justify-between text-sm text-gray-400 mb-2">
+        <span>Baseline: {baseline.toLocaleString()}</span>
+        <span className="font-semibold text-gray-100">{pct}% of target growth achieved</span>
+        <span>Target: {target.toLocaleString()}</span>
+      </div>
+      <div className="w-full h-6 bg-gray-800 rounded-full relative overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all"
+          style={{ width: `${Math.min(100, progress * 100)}%`, backgroundColor: status.bg === "#065f46" ? "#4CAF50" : status.bg === "#92400e" ? "#FF9800" : "#F44336" }}
+        />
+      </div>
+      <div className="flex justify-between text-xs text-gray-500 mt-1">
+        <span>{baseline.toLocaleString()}</span>
+        <span className="font-semibold" style={{ color: status.bg === "#065f46" ? "#4ade80" : status.bg === "#92400e" ? "#fbbf24" : "#f87171" }}>
+          Current: {current.toLocaleString()}
+        </span>
+        <span>{target.toLocaleString()}</span>
+      </div>
+    </div>
+  );
+};
+
+export default function CascadeKPITracker() {
+  // --- Replace with live data from ClickHouse queries ---
+  const BASELINE = 141000;
+  const TARGET = 155000;
+  const CURRENT = 0; // trailing-12m uniqExact(pillar_db_instance_id)
+
+  const monthlyData = [
+    // { month: "Apr 25", actual: 31500 }, ...through... { month: "Jan 26", actual: 54749 },
+    // { month: "Feb 26", actual: null },  // incomplete — exclude
+    // Future months: { month: "Jun 26", target: 148222 }
+  ];
+
+  const versionData = [
+    // { name: "8.0.x", instances: 40370 },
+    // { name: "8.4.x", instances: 14506 },
+  ];
+
+  const GROWTH_REQUIRED = TARGET - BASELINE;
+  const monthsTotal = 9; // Apr–Dec
+  const monthsElapsed = 0; // calculate from current month
+  const requiredNow = BASELINE + (GROWTH_REQUIRED * monthsElapsed / monthsTotal);
+  const status = getStatus(CURRENT, requiredNow);
+  const growthNeeded = TARGET - CURRENT;
+  const monthsLeft = 12 - new Date().getMonth(); // rough
+  const paceRequired = monthsLeft > 0 ? Math.ceil(growthNeeded / monthsLeft) : 0;
+
+  const VERSION_COLORS = { "8.4.x": "#4CAF50", "8.0.x": "#FF6B35", "8.3.x": "#2196F3", "5.7.x": "#9E9E9E", "Other": "#6b7280" };
+
+  return (
+    <div className="p-6 bg-gray-950 min-h-screen text-gray-100">
+      {/* 1. Status banner */}
+      <div className="rounded-xl p-4 mb-4 text-center text-lg font-bold" style={{ backgroundColor: status.bg, color: status.color }}>
+        {status.label} — {CURRENT.toLocaleString()} instances vs {Math.round(requiredNow).toLocaleString()} required ({CURRENT >= requiredNow ? "+" : ""}{(CURRENT - requiredNow).toLocaleString()})
+      </div>
+
+      {/* 2. Header */}
+      <p className="text-xs font-semibold tracking-widest text-[#FF6B35] mb-1">VISTA TELEMETRY REPORT</p>
+      <h1 className="text-3xl font-bold text-gray-100 mb-1">MySQL Cascade KPI</h1>
+      <p className="text-sm text-gray-400 mb-6">Tracking Period: Jan 2026 – Dec 2026 | Metric: pillar_db_instance_id | Source: ClickHouse (telemetryd)</p>
+
+      {/* 3. Progress bar */}
+      <ProgressBar baseline={BASELINE} current={CURRENT} target={TARGET} status={status} />
+
+      {/* 4. KPI row */}
+      <div className="grid grid-cols-5 gap-3 mb-6">
+        {[
+          { label: "CURRENT (T12M)", value: CURRENT.toLocaleString(), color: status.bg === "#065f46" ? "#4ade80" : status.bg === "#92400e" ? "#fbbf24" : "#f87171" },
+          { label: "BASELINE", value: BASELINE.toLocaleString(), color: "#9ca3af" },
+          { label: "TARGET", value: TARGET.toLocaleString(), color: "#f3f4f6" },
+          { label: "GROWTH NEEDED", value: `+${growthNeeded.toLocaleString()}`, color: "#f3f4f6" },
+          { label: "MONTHLY PACE REQ'D", value: `+${paceRequired.toLocaleString()}/mo`, color: "#f3f4f6" },
+        ].map((card) => (
+          <div key={card.label} className="bg-gray-900 rounded-xl border border-gray-800 p-4 text-center">
+            <p className="text-xs text-gray-400 font-semibold tracking-wider mb-2">{card.label}</p>
+            <p className="text-2xl font-bold" style={{ color: card.color }}>{card.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 5. Trend chart */}
+      <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 mb-4">
+        <h2 className="text-lg font-semibold text-gray-100 mb-1">Active PS Instances & Target Pace</h2>
+        <p className="text-xs text-gray-400 mb-4">Monthly unique DB instances (complete months only) vs linear target pace</p>
+        <ResponsiveContainer width="100%" height={350}>
+          <ComposedChart data={monthlyData} margin={{ top: 10, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+            <XAxis dataKey="month" tick={{ fill: "#9ca3af", fontSize: 12 }} />
+            <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} />
+            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", color: "#f3f4f6" }} />
+            <Legend wrapperStyle={{ color: "#9ca3af" }} />
+            <ReferenceLine y={BASELINE} stroke="#6b7280" strokeDasharray="8 4" label={{ value: "Baseline", fill: "#6b7280", fontSize: 11 }} />
+            <ReferenceLine y={TARGET} stroke="#FF6B35" strokeDasharray="8 4" label={{ value: "Target", fill: "#FF6B35", fontSize: 11 }} />
+            <Line type="monotone" dataKey="target" stroke="#FF6B35" strokeWidth={2} strokeDasharray="6 3" dot={false} name="Target Pace" />
+            <Line type="monotone" dataKey="projected" stroke="#6b7280" strokeWidth={1.5} strokeDasharray="3 3" dot={false} name="Projected" />
+            <Line type="monotone" dataKey="actual" stroke="#4CAF50" strokeWidth={2.5} dot={{ r: 4, fill: "#4CAF50" }} name="Actual" />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* 6. Secondary metrics */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <p className="text-xs text-gray-400 font-semibold tracking-wider mb-2">8.4 ADOPTION RATE</p>
+          <p className="text-3xl font-bold text-[#4CAF50]">26.5%</p>
+          <p className="text-sm text-gray-400 mt-1">14,506 of 54,749 instances</p>
+          <p className="text-xs text-green-400 mt-1">+20.6pp from 5.9% ten months ago</p>
+        </div>
+        <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          <p className="text-xs text-gray-400 font-semibold tracking-wider mb-3">VERSION DISTRIBUTION</p>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={versionData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+              <XAxis type="number" tick={{ fill: "#9ca3af", fontSize: 11 }} />
+              <YAxis type="category" dataKey="name" width={60} tick={{ fill: "#d1d5db", fontSize: 12 }} />
+              <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", color: "#f3f4f6" }} />
+              <Bar dataKey="instances" radius={[0, 4, 4, 0]}>
+                {versionData.map((entry) => (
+                  <Cell key={entry.name} fill={VERSION_COLORS[entry.name] || "#6b7280"} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* 7. GSM Framework card */}
+      <div className="bg-gray-900 rounded-xl border border-gray-800 border-l-4 border-l-[#FF6B35] p-5 mb-4">
+        <h3 className="text-sm font-semibold text-gray-300 tracking-wider mb-3">GSM FRAMEWORK</h3>
+        <div className="space-y-2 text-sm">
+          <p><span className="text-gray-400 font-semibold">Goal:</span> <span className="text-gray-200">Measure the reach and active adoption of Percona Server for MySQL in the field</span></p>
+          <p><span className="text-gray-400 font-semibold">Signal:</span> <span className="text-gray-200">Unique PS instances reporting telemetry is growing — new deployments outpace decommissions</span></p>
+          <p><span className="text-gray-400 font-semibold">Measure:</span> <span className="text-gray-200">Count of unique db_instance_id values within a rolling 30-day window, tracked monthly</span></p>
+        </div>
+      </div>
+
+      {/* 10. Footer */}
+      <p className="text-xs text-gray-500 mt-6 text-center">Generated by VISTA | {new Date().toLocaleDateString()} | Source: ClickHouse telemetryd | Metric: uniqExact(pillar_db_instance_id)</p>
+    </div>
+  );
+}
+```
+
+**Key rules for Cascade KPI Tracker:**
+- Status banner is ALWAYS the first element — the user should see on-track/off-track before anything else
+- Progress bar shows visual distance to target — never skip this
+- KPI row is always 5 cards in the exact order shown
+- Trend chart must include target pace line (dashed orange) and actual line (solid green)
+- Flag incomplete data months — never silently include bad data
+- GSM Framework card is always present — it grounds the KPI in its strategic context
+- Use `references/cascade-kpi-mysql.md` for all parameters (baseline, target, queries, status thresholds)
+
 ## Chart Type Selection Guide
 
 | Report Need | Chart Type | When to Use |
@@ -267,4 +446,5 @@ export default function ComparisonReport() {
 | Composition over time | Stacked area | Version adoption, revenue mix over time |
 | Correlation | Scatter | Deal size vs close time |
 | Status overview | Scorecard + sparklines | Executive summary |
+| Goal tracking | KPI Tracker (Layout C) | Cascade KPIs, target vs actual |
 | Risk/heat | Heatmap table | Renewal risk, regional performance |

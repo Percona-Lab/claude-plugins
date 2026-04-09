@@ -194,6 +194,9 @@ These are the standard reports VISTA can generate. Users can request any of thes
 21. **Regional Performance** -- All metrics broken down by AMER/EMEA/APAC. Multi-panel dashboard.
 22. **Product Line P&L** -- Revenue, cost, margin by product family. Waterfall chart.
 
+### Goal Tracking
+28. **Cascade KPI Tracker** -- Track a Cascade KPI against its target with on-track/off-track status, progress bar, pace calculation, and trend chart. Uses GSM framework. See `references/cascade-kpi-mysql.md` for MySQL KPI definition.
+
 ### Engineering Visibility
 23. **Team Status Dashboard** -- Active Jira issues by product team, grouped by epic/initiative, with status distribution and blockers highlighted. Stacked bar + table.
 24. **Cross-Team Dependencies** -- Dependency graph across teams using Jira issue links (blocks/is blocked by). Matrix + highlighted blockers.
@@ -398,6 +401,81 @@ Use this layout for: "What shipped this week?", "What did X ship last sprint?", 
 - Use Chart.js for HTML. See `references/chart-templates.md` for patterns.
 - See `references/engineering-visibility.md` for detailed blueprints and wireframes.
 - Percona brand colors: green primary (#1A4D2E), orange accent (#FF6B35)
+
+---
+
+#### Layout C: Cascade KPI Tracker (#28) — Goal Tracking
+
+Use this layout for: "Show me the MySQL Cascade KPI", "MySQL KPI", "Are we on track?", "PS instances KPI", "cascade metric", or any request to track a Cascade KPI against its target. **Read `references/cascade-kpi-mysql.md` first** — it contains the GSM framework, baseline, target, queries, and on-track calculation.
+
+**This layout is RIGID. Produce the EXACT same structure every time. No rearranging, no renaming, no creative variations.**
+
+1. **Status banner** — full-width bar at the top showing the on-track status. This is THE most important element:
+   - **ON TRACK** (green bg `#065f46`, white text): actual >= required pace
+   - **AT RISK** (amber bg `#92400e`, white text): actual within 2% of required pace
+   - **OFF TRACK** (red bg `#991b1b`, white text): actual below required pace by >2%
+   
+   Format: `{STATUS} — {actual} instances vs {required_at_pace} required ({+/-difference})`
+
+2. **Header** — `VISTA TELEMETRY REPORT` label (small caps, orange accent `#FF6B35`), report title (h1, white), subtitle:
+   ```
+   VISTA TELEMETRY REPORT
+   MySQL Cascade KPI
+   Tracking Period: {start} – {end} | Metric: pillar_db_instance_id | Source: ClickHouse (telemetryd)
+   ```
+
+3. **Progress bar** — visual bar showing baseline → current → target:
+   - Full width bar with three markers: Baseline (left), Current (filled position), Target (right)
+   - Show percentage complete: `{pct}% of target growth achieved`
+   - Bar color matches status (green/amber/red)
+   - Labels: `Baseline: {baseline}` on left, `Target: {target}` on right, `Current: {actual}` at fill point
+
+4. **KPI row** — exactly 5 cards in a single row, always in this order:
+   - **Current** (large number, status-colored): trailing-12m unique instances
+   - **Baseline** (gray number): starting point value
+   - **Target** (white number): end-of-period goal
+   - **Growth Needed** (white number): remaining instances to add
+   - **Monthly Pace Required** (white number): instances/month needed from now to hit target
+   Use `grid grid-cols-5 gap-3`. Each card: `bg-gray-900 rounded-xl border border-gray-800 p-4 text-center`.
+
+5. **Trend chart** — ComposedChart with:
+   - **Actual line** (solid, `#4CAF50` green, dots): monthly active instances (complete months only)
+   - **Target line** (dashed, `#FF6B35` orange): linear interpolation from baseline to target
+   - **Projected line** (dotted, `#6b7280` gray): linear projection from recent trend to Dec
+   - X-axis: months (Jan 2026 – Dec 2026)
+   - Y-axis: instance count
+   - Flag incomplete months with a `ReferenceLine` or annotation
+   - Include `ReferenceLine` for baseline and target values
+
+6. **Secondary metrics** — `grid grid-cols-2 gap-4`:
+   - Left: **8.4 Adoption Rate** — single big number + trend (e.g., "26.5% — up from 5.9% ten months ago"). Show as a mini area chart or just the number with delta.
+   - Right: **Version Distribution** — horizontal bar chart showing top version groups (8.4.x, 8.0.x, 5.7.x, Other) with instance counts
+
+7. **GSM Framework card** — `bg-gray-900 rounded-xl border border-gray-800 p-5` with three rows:
+   - **Goal**: {goal text}
+   - **Signal**: {signal text}
+   - **Measure**: {measure text}
+   Use left-border accent (`border-l-4 border-l-[#FF6B35]`).
+
+8. **Data quality notes** — if any months have incomplete data, show a warning banner:
+   `⚠ {months} excluded due to incomplete telemetry ingestion. Last reliable month: {month}.`
+
+9. **Key findings** — 3-5 auto-generated bullets:
+   - On-track status with specific numbers
+   - Month-over-month change in active instances
+   - 8.4 adoption acceleration/deceleration
+   - 8.0 EOL migration progress
+   - Any data quality flags
+
+10. **Footer** — `Generated by VISTA | {date} | Source: ClickHouse telemetryd | Metric: uniqExact(pillar_db_instance_id)`
+
+---
+
+### Natural Language Triggers for Cascade KPIs
+- "Show me the MySQL Cascade KPI" -> Cascade KPI Tracker (#28) using `references/cascade-kpi-mysql.md`
+- "MySQL KPI" / "PS instances KPI" -> Cascade KPI Tracker (#28)
+- "Are we on track?" (in context of MySQL/telemetry) -> Cascade KPI Tracker (#28)
+- "Cascade metric" / "cascade dashboard" -> Cascade KPI Tracker (#28)
 
 ### Natural Language Triggers for Engineering Visibility
 - "What's the MySQL team working on?" -> Team Status Dashboard (#23) filtered to MySQL
