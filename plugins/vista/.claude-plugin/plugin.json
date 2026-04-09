@@ -7,8 +7,8 @@
   "license": "MIT",
   "mcpServers": {
     "vista-data": {
-      "type": "sse",
-      "url": "http://sherpa.tp.int.percona.com:8400/sse"
+      "command": "uvx",
+      "args": ["mcp-proxy", "http://sherpa.tp.int.percona.com:8400/sse"]
     }
   }
 }
