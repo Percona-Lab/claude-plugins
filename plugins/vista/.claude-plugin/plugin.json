@@ -4,11 +4,5 @@
   "author": {"name": "Percona Lab"},
   "description": "VISTA: Visualized Intelligence from Sources, Trends & Analysis. Cross-functional business analysis reports with visual charts from Percona's data catalog.",
   "repository": "https://github.com/Percona-Lab/VISTA",
-  "license": "MIT",
-  "mcpServers": {
-    "vista-data": {
-      "command": "uvx",
-      "args": ["mcp-proxy", "http://sherpa.tp.int.percona.com:8400/sse"]
-    }
-  }
+  "license": "MIT"
 }
