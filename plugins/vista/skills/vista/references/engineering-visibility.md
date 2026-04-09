@@ -72,7 +72,7 @@ The dashboard should render as a single React component following Layout A:
 ┌─────────────────────────────────────────────────────┐
 │  VISTA ENGINEERING REPORT                            │
 │  MySQL: Team Status                                  │
-│  As of 2026-04-02 | Projects: PS, MYR, DISTMYSQL   │
+│  As of 2026-04-02 | Projects: PS, DISTMYSQL         │
 │  Source: Jira (perconadev.atlassian.net)             │
 ├─────────────────────────────────────────────────────┤
 │  KPI Cards (6 always):                               │
@@ -84,7 +84,6 @@ The dashboard should render as a single React component following Layout A:
 ├─────────────────────────────────────────────────────┤
 │  Status Distribution (Stacked Horizontal Bar)        │
 │  PS      ████████████░░░░░░░████░░██                │
-│  MYR     ██░░░                                       │
 │  To Do | In Progress | In Review | Pending Release   │
 ├──────────────────────┬──────────────────────────────┤
 │  Priority Breakdown  │  Workload by Assignee         │
@@ -149,7 +148,7 @@ Auto-generate 3-5 bullet points:
 
 #### Option A: Jira API (preferred)
 ```
-project in (PS, MYR, DISTMYSQL, PXC, PSMDB, PBM, PMM, PG, DISTPG, K8SPS, K8SPXC, K8SPSMDB, K8SPG, PCSM, PT, PKG, DOCS) AND issueFunction in hasLinks() AND status != Done AND status != Closed
+project in (PS, DISTMYSQL, PXC, PSMDB, PBM, PMM, PG, DISTPG, K8SPS, K8SPXC, K8SPSMDB, K8SPG, PCSM, PT, PKG, DOCS) AND issueFunction in hasLinks() AND status != Done AND status != Closed
 ```
 Fields: `summary, status, issuelinks, project, priority, assignee`
 
@@ -215,7 +214,7 @@ project in (PROJECT_KEYS) AND sprint = "SPRINT_NAME" AND status in (Done, Closed
 
 **When user specifies a time range** ("this week", "last 30 days"):
 ```
-project in (PS, MYR, DISTMYSQL, PXC, PSMDB, PBM, PMM, PG, DISTPG, K8SPS, K8SPXC, K8SPSMDB, K8SPG, PCSM, PT, PKG, DOCS) AND status in (Done, Closed) AND status changed to (Done, Closed) AFTER -{days}d ORDER BY updated DESC
+project in (PS, DISTMYSQL, PXC, PSMDB, PBM, PMM, PG, DISTPG, K8SPS, K8SPXC, K8SPSMDB, K8SPG, PCSM, PT, PKG, DOCS) AND status in (Done, Closed) AND status changed to (Done, Closed) AFTER -{days}d ORDER BY updated DESC
 ```
 
 Fields: `summary, status, issuetype, priority, assignee, project, updated, parent, customfield_10020`
@@ -227,7 +226,7 @@ Query issues where Status = Done/Closed AND Updated >= {days ago}. **Warning**: 
 
 ### Processing
 - **Group by TEAM, not by project key.** Roll up project keys into teams using the mapping from SKILL.md:
-  - MySQL: PS, MYR, DISTMYSQL
+  - MySQL: PS, DISTMYSQL
   - PXC: PXC
   - MongoDB: PSMDB, PBM
   - PMM: PMM

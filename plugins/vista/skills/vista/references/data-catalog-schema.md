@@ -36,7 +36,7 @@ Pillars telemetry, ServiceNow, Download stats elasticsearch cluster, Salesforce,
 ## Key Tags (grouped)
 
 ### Product
-MySQL, MongoDB, Postgres, Valkey, N+E, operators, kubernetes, percona server, postgresql
+MySQL, MongoDB, Postgres, Valkey, N+E, operators, kubernetes, percona server, postgresql, XtraBackup, PXB, Percona Toolkit, ProxySQL, PMM, ClusterSync
 
 ### Sales & Revenue
 Sales, quota, target, attainment, ACV, booking, bookings, NRE, revenue, win, Expansion, NNL, opportunity, opportunities

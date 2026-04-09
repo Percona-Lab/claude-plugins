@@ -108,7 +108,11 @@ The Product/Engineering/Community team publishes weekly high-level status report
 
 ### Telemetry & Download Data: vista-data MCP Server (LIVE)
 
-Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (download analytics) via the `vista-data` MCP server.
+Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (download analytics) via the `vista-data` MCP server. The server is hosted on SHERPA and requires Percona VPN.
+
+**MISSING TOOLS**: If `query_clickhouse` or `search_elasticsearch` tools are not available, tell the user: "The data tools are not connected. Please restart Claude Desktop to reload the VISTA plugin, which includes the data connection. Make sure you're on the Percona VPN." Do NOT attempt to run the query without the tools. Do NOT hallucinate results.
+
+**VPN / CONNECTION ERRORS**: If a telemetry or download query fails with a connection error, timeout, or the MCP server is shown as disconnected, tell the user: "The telemetry and download data requires the Percona VPN. Please connect to VPN and try again." Do NOT retry repeatedly — one failure is enough to diagnose the issue. Non-telemetry reports (Jira, Notion, Slack) work without VPN.
 
 **IMPORTANT: Before writing any telemetry or download query, read the data dictionary reference file `references/vista-data-dictionary.md`. It contains the complete schema, field values, access patterns, and pre-built query templates. Do NOT call discovery tools (`es_list_indices`, `es_get_mapping`, `ch_list_databases`, `ch_list_tables`, `ch_describe_table`) — go straight to the query using the reference.**
 
@@ -188,7 +192,7 @@ These are the standard reports VISTA can generate. Users can request any of thes
 ### Product Team → Jira Project Keys
 | Team | Project Keys | Description |
 |---|---|---|
-| MySQL | PS, MYR, DISTMYSQL | Percona Server for MySQL, MySQL Router, Distribution |
+| MySQL | PS, PXB, DISTMYSQL, PSQLADM | Percona Server for MySQL, XtraBackup, Distribution, ProxySQL |
 | PXC | PXC | Percona XtraDB Cluster |
 | MongoDB | PSMDB, PBM | Percona Server for MongoDB and Backup |
 | PMM | PMM | Percona Monitoring and Management |
@@ -196,7 +200,9 @@ These are the standard reports VISTA can generate. Users can request any of thes
 | Operators | K8SPS, K8SPXC, K8SPSMDB, K8SPG | All Kubernetes Operators (MySQL, PXC, MongoDB, PostgreSQL) |
 | ClusterSync | PCSM | ClusterSync for MongoDB |
 | Percona Toolkit | PT | Percona Toolkit |
+| Valkey | VK | Valkey (early stage) |
 | Packaging | PKG | Build and packaging infrastructure |
+| Docs | DOCS | Documentation |
 | Docs | DOCS | Documentation |
 
 **IMPORTANT**: Always group and label by **team name** (e.g. "MySQL"), never by raw project key (e.g. "PS"). Roll up all project keys for a team into a single group. Project keys not in the table above get their own group named after the key.
@@ -241,16 +247,16 @@ Some teams maintain additional Notion databases with release/milestone context. 
 
 ```
 # Active work for a team (replace project keys as needed)
-project in (PS, MYR, DISTMYSQL) AND status != Done AND status != Closed ORDER BY priority DESC
+project in (PS, DISTMYSQL) AND status != Done AND status != Closed ORDER BY priority DESC
 
 # Blockers
 project in (PS, K8SPS) AND priority = Blocker AND status != Done
 
 # What shipped in a specific sprint (use actual sprint name from data)
-project in (PS, MYR, DISTMYSQL) AND sprint = "MySQL Sprint March 2026" AND status in (Done, Closed)
+project in (PS, DISTMYSQL) AND sprint = "MySQL Sprint March 2026" AND status in (Done, Closed)
 
 # What shipped in the last closed sprint (auto-detect)
-project in (PS, MYR, DISTMYSQL) AND sprint in closedSprints() AND status in (Done, Closed) ORDER BY updated DESC
+project in (PS, DISTMYSQL) AND sprint in closedSprints() AND status in (Done, Closed) ORDER BY updated DESC
 
 # Recently completed (fallback when no sprint data)
 project in (PS, K8SPS) AND status changed to Done AFTER -7d
