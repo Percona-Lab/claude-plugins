@@ -42,33 +42,33 @@ export default function TrendReport() {
   const data = [/* processed data here */];
 
   return (
-    <div className="p-6 bg-white min-h-screen">
-      <h2 className="text-2xl font-bold text-gray-900 mb-1">Report Title</h2>
-      <p className="text-sm text-gray-500 mb-6">Period: Jan-Dec 2025 | Source: Salesforce</p>
+    <div className="p-6 bg-gray-950 min-h-screen text-gray-100">
+      <h2 className="text-2xl font-bold text-gray-100 mb-1">Report Title</h2>
+      <p className="text-sm text-gray-400 mb-6">Period: Jan-Dec 2025 | Source: Salesforce</p>
 
       {/* Summary stats row */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-500">Total</p>
-          <p className="text-2xl font-bold text-gray-900">$12.4M</p>
-          <p className="text-xs text-green-600">+8% YoY</p>
+        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+          <p className="text-sm text-gray-400">Total</p>
+          <p className="text-2xl font-bold text-gray-100">$12.4M</p>
+          <p className="text-xs text-green-400">+8% YoY</p>
         </div>
         {/* more stat cards */}
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-          <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip />
-          <Legend />
+          <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+          <XAxis dataKey="month" tick={{ fill: "#9ca3af", fontSize: 12 }} />
+          <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} />
+          <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", color: "#f3f4f6" }} />
+          <Legend wrapperStyle={{ color: "#9ca3af" }} />
           <Line type="monotone" dataKey="actual" stroke={COLORS[0]} strokeWidth={2} dot={{ r: 3 }} />
           <Line type="monotone" dataKey="target" stroke={COLORS[1]} strokeWidth={2} strokeDasharray="5 5" />
         </LineChart>
       </ResponsiveContainer>
 
-      <p className="text-xs text-gray-400 mt-4">Data source: Salesforce | Generated: {new Date().toLocaleDateString()}</p>
+      <p className="text-xs text-gray-500 mt-4">Data source: Salesforce | Generated: {new Date().toLocaleDateString()}</p>
     </div>
   );
 }
@@ -91,9 +91,9 @@ export default function FunnelReport() {
   ];
 
   return (
-    <div className="p-6 bg-white min-h-screen">
-      <h2 className="text-2xl font-bold text-gray-900 mb-1">Pipeline Funnel</h2>
-      <p className="text-sm text-gray-500 mb-6">Q1 2026 | Source: Salesforce</p>
+    <div className="p-6 bg-gray-950 min-h-screen text-gray-100">
+      <h2 className="text-2xl font-bold text-gray-100 mb-1">Pipeline Funnel</h2>
+      <p className="text-sm text-gray-400 mb-6">Q1 2026 | Source: Salesforce</p>
 
       <ResponsiveContainer width="100%" height={400}>
         <FunnelChart>
@@ -169,17 +169,17 @@ export default function ComparisonReport() {
   const data = [/* { region: "AMER", new: 45, renewal: 32, expansion: 18 } */];
 
   return (
-    <div className="p-6 bg-white min-h-screen">
-      <h2 className="text-2xl font-bold text-gray-900 mb-1">Regional Comparison</h2>
-      <p className="text-sm text-gray-500 mb-6">FY 2025 | Source: Salesforce</p>
+    <div className="p-6 bg-gray-950 min-h-screen text-gray-100">
+      <h2 className="text-2xl font-bold text-gray-100 mb-1">Regional Comparison</h2>
+      <p className="text-sm text-gray-400 mb-6">FY 2025 | Source: Salesforce</p>
 
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="region" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
+          <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+          <XAxis dataKey="region" tick={{ fill: "#9ca3af" }} />
+          <YAxis tick={{ fill: "#9ca3af" }} />
+          <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", color: "#f3f4f6" }} />
+          <Legend wrapperStyle={{ color: "#9ca3af" }} />
           <Bar dataKey="new" fill={COLORS[0]} name="New Business" />
           <Bar dataKey="renewal" fill={COLORS[1]} name="Renewals" />
           <Bar dataKey="expansion" fill={COLORS[2]} name="Expansion" />
@@ -202,19 +202,19 @@ export default function ComparisonReport() {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 2rem; max-width: 1200px; margin: 0 auto; color: #1a1a1a; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 2rem; max-width: 1200px; margin: 0 auto; color: #f3f4f6; background: #0a1628; }
     .header { margin-bottom: 2rem; border-bottom: 2px solid #1A4D2E; padding-bottom: 1rem; }
-    .header h1 { font-size: 1.5rem; color: #1A4D2E; }
-    .header p { font-size: 0.875rem; color: #666; margin-top: 0.25rem; }
+    .header h1 { font-size: 1.5rem; color: #f3f4f6; }
+    .header p { font-size: 0.875rem; color: #9ca3af; margin-top: 0.25rem; }
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    .stat-card { background: #f8f9fa; border-radius: 8px; padding: 1rem; }
-    .stat-card .label { font-size: 0.75rem; color: #666; text-transform: uppercase; }
-    .stat-card .value { font-size: 1.5rem; font-weight: 700; color: #1a1a1a; }
+    .stat-card { background: #111827; border-radius: 12px; padding: 1rem; border: 1px solid #1f2937; }
+    .stat-card .label { font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 700; color: #f3f4f6; }
     .stat-card .delta { font-size: 0.75rem; }
-    .delta.positive { color: #4CAF50; }
-    .delta.negative { color: #F44336; }
+    .delta.positive { color: #4ade80; }
+    .delta.negative { color: #f87171; }
     .chart-container { position: relative; height: 400px; margin-bottom: 2rem; }
-    .footer { font-size: 0.75rem; color: #999; margin-top: 2rem; }
+    .footer { font-size: 0.75rem; color: #6b7280; margin-top: 2rem; }
     @media print {
       body { padding: 0; }
       .chart-container { page-break-inside: avoid; }
