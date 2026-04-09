@@ -8,7 +8,7 @@ This reference defines the MySQL Cascade KPI that VISTA tracks. Use this file wh
 |---------|-----------|
 | **Goal** | Measure the reach and active adoption of Percona Server for MySQL in the field |
 | **Signal** | The number of unique Percona Server instances reporting telemetry is growing, indicating new deployments outpace decommissions and opt-outs |
-| **Measure** | Count of unique `db_instance_id` values reported to the Percona Telemetry backend (ClickHouse) within a rolling 30-day window, tracked monthly |
+| **Measure** | Count of unique `pillar_db_instance_id` values reported to the Percona Telemetry backend (ClickHouse) within a rolling 30-day window, tracked monthly |
 
 **Alignment**: This measure maps directly to **Goal 1: Measure Feature Activation and Adoption (Priority 1)** on the MySQL GSM page, under the Activation & Usage Statistics column.
 
@@ -24,46 +24,70 @@ This reference defines the MySQL Cascade KPI that VISTA tracks. Use this file wh
 | Owner | Dennis Kittrell |
 | Period | Jan 1, 2026 to Dec 31, 2026 |
 
-## Metric Definitions
+## ClickHouse Column Reference
 
-### Primary: Monthly Active Instances (30-day window)
+These are the EXACT column names in `telemetryd.pillars_telemetry_phase_1`. Do NOT guess or add prefixes.
+
+| Column | Type | Use |
+|--------|------|-----|
+| `product_family` | LowCardinality(String) | Filter: `product_family = 'ps'` for MySQL |
+| `pillar_db_instance_id` | String | Unique DB instance identifier — use `uniqExact()` |
+| `pillar_version` | LowCardinality(String) | Version string, e.g. `8.4.3-3`, `8.0.37-29` |
+| `create_date` | Date | Partition-aligned date — use for range filters (fast) |
+| `create_time` | DateTime | Full timestamp — use only when time precision needed |
+
+## Pre-Built Queries (copy-paste ready)
+
+### Monthly Active Instances (complete months, trailing 12)
 ```sql
 SELECT
-  toStartOfMonth(create_time) AS month,
+  toStartOfMonth(create_date) AS month,
   uniqExact(pillar_db_instance_id) AS active_instances
 FROM telemetryd.pillars_telemetry_phase_1
-WHERE pillar_product_family = 'ps'
-  AND create_time >= toStartOfMonth(today()) - INTERVAL 12 MONTH
-  AND create_time < toStartOfMonth(today())
+WHERE product_family = 'ps'
+  AND create_date >= toStartOfMonth(today()) - INTERVAL 12 MONTH
+  AND create_date < toStartOfMonth(today())
 GROUP BY month
 ORDER BY month
 ```
 
-### Trailing-12-Month Cumulative (for KPI comparison to baseline/target)
+### Trailing-12-Month Cumulative (KPI headline number)
 ```sql
 SELECT uniqExact(pillar_db_instance_id) AS trailing_12m_instances
 FROM telemetryd.pillars_telemetry_phase_1
-WHERE pillar_product_family = 'ps'
-  AND create_time >= today() - INTERVAL 12 MONTH
+WHERE product_family = 'ps'
+  AND create_date >= today() - INTERVAL 12 MONTH
 ```
 
-### Version Distribution (for 8.4 adoption tracking)
+### Version Distribution (last complete month)
 ```sql
 SELECT
   multiIf(
-    pillar_db_version LIKE '8.4%', '8.4.x',
-    pillar_db_version LIKE '8.0%', '8.0.x',
-    pillar_db_version LIKE '8.3%', '8.3.x',
-    pillar_db_version LIKE '5.7%', '5.7.x',
+    pillar_version LIKE '8.4%', '8.4.x',
+    pillar_version LIKE '8.0%', '8.0.x',
+    pillar_version LIKE '8.3%', '8.3.x',
+    pillar_version LIKE '5.7%', '5.7.x',
     'Other'
   ) AS version_group,
   uniqExact(pillar_db_instance_id) AS instances
 FROM telemetryd.pillars_telemetry_phase_1
-WHERE pillar_product_family = 'ps'
-  AND create_time >= toStartOfMonth(today()) - INTERVAL 1 MONTH
-  AND create_time < toStartOfMonth(today())
+WHERE product_family = 'ps'
+  AND create_date >= toStartOfMonth(today()) - INTERVAL 1 MONTH
+  AND create_date < toStartOfMonth(today())
 GROUP BY version_group
 ORDER BY instances DESC
+```
+
+### 8.4 Adoption Rate (last complete month)
+```sql
+SELECT
+  uniqExactIf(pillar_db_instance_id, pillar_version LIKE '8.4%') AS v84_instances,
+  uniqExact(pillar_db_instance_id) AS total_instances,
+  round(v84_instances * 100.0 / total_instances, 1) AS adoption_pct
+FROM telemetryd.pillars_telemetry_phase_1
+WHERE product_family = 'ps'
+  AND create_date >= toStartOfMonth(today()) - INTERVAL 1 MONTH
+  AND create_date < toStartOfMonth(today())
 ```
 
 ## On-Track Calculation
@@ -82,9 +106,12 @@ status:
   if actual < required_at_this_point - 2%:   "OFF TRACK" (red)
 ```
 
+**IMPORTANT**: If trailing-12m data is incomplete (ingestion gaps), the on-track calculation is unreliable. In that case, show the status as "DATA INCOMPLETE" (gray) with an explanation — do NOT show a false OFF TRACK.
+
 ## Data Quality Notes
 
-- **Feb-Apr 2026 telemetry ingestion is incomplete** (~3K vs expected ~55K). Exclude these months from trend analysis and flag them in the report. Use only complete months.
-- The `create_time` column is the correct timestamp (NOT `report_time`).
-- Product family filter is `pillar_product_family = 'ps'` (NOT `mysql`, NOT `percona-server`).
+- **Feb-Apr 2026 telemetry ingestion is incomplete** (~3K vs expected ~55K). Exclude these months from trend charts. The trailing-12m number will be undercounted until ingestion is restored.
+- Use `create_date` (Date) for range filters, not `create_time` (DateTime) — it's partition-aligned and faster.
+- Product family filter is `product_family = 'ps'` (NOT `mysql`, NOT `percona-server`, NOT `pillar_product_family`).
 - Always use `uniqExact(pillar_db_instance_id)` for unique instance counts, not `count()`.
+- Column is `pillar_version` (NOT `pillar_db_version`, NOT `db_version`).
