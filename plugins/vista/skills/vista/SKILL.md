@@ -23,6 +23,11 @@ Before planning any query, check which tools you actually have:
   Do NOT plan queries, show SQL, or waste tokens — just deliver the error message above and stop.
 - **Engineering queries** need the Jira/Notion connectors (Atlassian MCP).
 - **Highlight/summary queries** need Slack and Notion connectors.
+- **Feature/component/extension name lookups** (e.g., MySQL component URNs like `component_js_lang`, PG extension names, MongoDB feature flags) should be verified via the **`percona-dk`** MCP (`search_percona_docs`, `get_percona_doc`). If `search_percona_docs` is NOT available, show this banner at the top of the report and in any section that filters on a named feature/component/extension:
+
+  > ⚠️ **percona-dk MCP not installed — feature/component names in this report were not verified against Percona docs and may be inaccurate.** To install: `curl -fsSL https://raw.githubusercontent.com/Percona-Lab/percona-dk/main/install | bash`, then restart Claude Desktop.
+
+  Also, when percona-dk is missing, ALWAYS run a `DISTINCT` query against live data first (see the "Filtering on `active_components`" section in `references/vista-data-dictionary.md`) before committing to a component name — do not guess.
 
 Only proceed with query planning after confirming the required tools are available.
 

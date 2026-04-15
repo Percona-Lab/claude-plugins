@@ -1,6 +1,6 @@
 {
   "name": "vista",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "author": {"name": "Percona Lab"},
   "description": "VISTA: Visualized Intelligence from Sources, Trends & Analysis. Cross-functional business analysis reports with visual charts from Percona's data catalog.",
   "repository": "https://github.com/Percona-Lab/VISTA",

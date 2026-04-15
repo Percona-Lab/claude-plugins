@@ -344,6 +344,8 @@ Active installations of Percona database products. **22M rows, 2017–present.**
 
 The `metrics` column is `Array(Tuple(String, String))`. One common tuple key is `active_components`, whose value is a JSON array of URNs like `file://component_js_lang`. **Component URN names are NOT predictable** — they do NOT follow a `component_{feature}` or `component_{product}_{feature}` pattern.
 
+> ⚠️ **If the `percona-dk` MCP is not installed** (`search_percona_docs` tool unavailable), step 1 below cannot be performed and any component/feature name in the report is unverified. Show the "percona-dk MCP not installed" banner from `SKILL.md` at the top of the report, and rely entirely on step 2 (the live `DISTINCT` query) before committing to a name.
+
 **Rule**: Before writing any query that filters on a `component_*` URN, verify the exact name. Do not guess.
 
 Two-step verification:
