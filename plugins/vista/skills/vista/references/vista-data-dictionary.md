@@ -75,6 +75,7 @@ Single source of truth for how every Percona product maps across all three data 
 | **Download-to-Active-Instance ratio** | ES + CH combined | Product | Monthly downloads per product (ES) / Monthly unique active instances per product (CH) | Proposed | Cross-source metric. High ratio = healthy new adoption funnel. Low ratio = sticky installed base with little new adoption. Requires mapping ES product names to CH product_family values using the Product Taxonomy table. |
 | **Pro-builds downloads** | ES: `*` | N/A | Downloads where package name matches `*pro*` | Discontinued | Pro-builds are no longer offered. Historical data only. |
 | **Everest managed clusters** | CH: `everest_telemetry` | N/A | `pxc_count + psmdb_count + pg_count` per Everest instance | Discontinued | Everest is now "Open Everest", independent of Percona. Historical data only. |
+| **Component-level feature activation** | CH: `pillars_telemetry_phase_1` | Product | `uniqExact(host_instance_id)` where `metrics` contains `('active_components', '%file://<component_urn>%')` in last 30d | Validated | Use `percona-dk` to verify the exact `component_*` URN before querying — names do NOT follow a `component_{feature}` pattern (e.g., JS stored programs = `component_js_lang`, NOT `component_mysql_js`). |
 
 ### Known Data Quality Issues
 
@@ -339,6 +340,31 @@ Active installations of Percona database products. **22M rows, 2017–present.**
 
 **Product family values**: `postgresql` (caveat: noisy data), `ps` (Percona Server for MySQL), `psmdb` (Percona Server for MongoDB), `pxc` (Percona XtraDB Cluster)
 
+#### Filtering on `active_components` — verify names first
+
+The `metrics` column is `Array(Tuple(String, String))`. One common tuple key is `active_components`, whose value is a JSON array of URNs like `file://component_js_lang`. **Component URN names are NOT predictable** — they do NOT follow a `component_{feature}` or `component_{product}_{feature}` pattern.
+
+**Rule**: Before writing any query that filters on a `component_*` URN, verify the exact name. Do not guess.
+
+Two-step verification:
+
+1. **Look it up in the Percona docs** via the `percona-dk` MCP (`search_percona_docs` / `get_percona_doc`). The canonical component-name mapping lives in PACK memory at `context/mysql-component-names.md` and is sourced from product docs.
+2. **Confirm against live data** with a `DISTINCT` query before running the real aggregation:
+
+   ```sql
+   SELECT DISTINCT arrayJoin(
+     JSONExtractArrayRaw(tupleElement(metric, 2))
+   ) AS component
+   FROM telemetryd.pillars_telemetry_phase_1
+   ARRAY JOIN metrics AS metric
+   WHERE product_family = 'ps'
+     AND tupleElement(metric, 1) = 'active_components'
+     AND create_date >= today() - 30
+   ORDER BY component
+   ```
+
+**Known gotcha**: JS stored programs in MySQL 9.7 = `component_js_lang`, NOT `component_mysql_js`. The 2026-04-15 JS stored programs report hallucinated the wrong name and returned zero results.
+
 ### Business-Aligned Query Templates
 
 **1. Active instances by product (the primary adoption metric):**
@@ -434,6 +460,25 @@ GROUP BY percona_customer_tier ORDER BY servers DESC
 ```sql
 SELECT * FROM telemetryd.pmm_metrics_pg_installed_extensions LIMIT 10
 -- Explore this table to understand structure before building full queries
+```
+
+**10. Component-level feature activation (e.g., JS stored programs):**
+> "How many instances have JS stored programs enabled, trended monthly?"
+
+**First** verify the component URN (see "Filtering on `active_components`" above). JS stored programs = `component_js_lang` (NOT `component_mysql_js`).
+
+```sql
+SELECT
+  toStartOfMonth(create_date) AS month,
+  uniqExact(host_instance_id) AS instances_with_component
+FROM telemetryd.pillars_telemetry_phase_1
+ARRAY JOIN metrics AS metric
+WHERE product_family = 'ps'
+  AND tupleElement(metric, 1) = 'active_components'
+  AND tupleElement(metric, 2) LIKE '%component_js_lang%'
+  AND create_date >= today() - 365
+GROUP BY month
+ORDER BY month
 ```
 
 #### Other Tables Reference
