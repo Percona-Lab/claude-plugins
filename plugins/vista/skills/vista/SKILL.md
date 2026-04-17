@@ -21,6 +21,11 @@ Before planning any query, check which tools you actually have:
   Details: https://github.com/Percona-Lab/vista-data-mcp"
 
   Do NOT plan queries, show SQL, or waste tokens — just deliver the error message above and stop.
+- **Support / SLA / incident queries** need `sn_query_table`, `sn_get_record`, or `sn_list_common_tables`. If these tools are not available, STOP IMMEDIATELY and tell the user exactly this:
+
+  "This query requires the **vista-servicenow** MCP server (prototype), which is not installed. Download `prototype-SN.mcpb` from https://github.com/Percona-Lab/VISTA/releases/latest and open it. You'll be prompted for your Percona ServiceNow credentials (stored securely in the OS keychain). Then restart Claude Desktop."
+
+  Do NOT plan queries or guess ticket counts — just deliver the error message above and stop.
 - **Engineering queries** need the Jira/Notion connectors (Atlassian MCP).
 - **Highlight/summary queries** need Slack and Notion connectors.
 - **Feature/component/extension name lookups** (e.g., MySQL component URNs like `component_js_lang`, PG extension names, MongoDB feature flags) should be verified via the **`percona-dk`** MCP (`search_percona_docs`, `get_percona_doc`). If `search_percona_docs` is NOT available, show this banner at the top of the report and in any section that filters on a named feature/component/extension:
@@ -151,12 +156,32 @@ Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (dow
 - **CH products**: `postgresql`, `ps` (MySQL), `psmdb` (MongoDB), `pxc` (XtraDB Cluster)
 - **Unique instances**: Use `uniqExact(host_instance_id)`, not `count()`
 
+### Support & Incident Data: vista-servicenow MCP Server (LIVE)
+
+Direct read-only access to Percona's ServiceNow instance (`perconadev.service-now.com`) via the `vista-servicenow` MCP server. Each user authenticates with their own ServiceNow credentials — results respect the authenticated user's ACLs.
+
+| Tool | Use For |
+|---|---|
+| `sn_query_table` | Querying any table with encoded-query filters — incidents, problems, changes, requests, knowledge |
+| `sn_get_record` | Fetching a single record by `sys_id` with all fields expanded |
+| `sn_list_common_tables` | Discovering which tables VISTA reports typically use |
+
+**Common tables**: `incident`, `problem`, `change_request`, `sc_request`, `sc_req_item`, `sc_task`, `kb_knowledge`.
+
+**Encoded query tips**:
+- `active=true` — open records only
+- `priority=1` / `priority=2` — P1 / P2
+- `state=-1` — New state (varies by table; use `sn_get_record` once to confirm numeric state values)
+- `sys_created_on>=javascript:gs.daysAgoStart(30)` — last 30 days
+- Combine with `^` (AND) and `^OR`, e.g. `active=true^priority=1^assignment_group.nameLIKEMySQL`
+
+**Response size**: default field set is narrow (number, short_description, priority, state, assigned_to, opened_at, sys_updated_on, category) and default limit is 10. Override `fields` and `limit` (max 100) when a report needs more.
+
 ### Other MCP Connectors
 
 | Source System | MCP Tool | Use For |
 |---|---|---|
 | Salesforce | (planned) | Pipeline, bookings, renewals, customer data |
-| ServiceNow | (planned) | Support tickets, cases, SLA metrics |
 | Slack | slack_search_public, slack_read_channel | Signal detection, team sentiment |
 | Google Drive | google_drive_search, google_drive_fetch | Reports, docs, shared analysis |
 | PostHog | (planned) | Docs analytics, user engagement |
@@ -456,23 +481,31 @@ Use this layout for: "Show me the MySQL Cascade KPI", "MySQL KPI", "Are we on tr
    - Left: **8.4 Adoption Rate** — single big number + trend (e.g., "26.5% — up from 5.9% ten months ago"). Show as a mini area chart or just the number with delta.
    - Right: **Version Distribution** — horizontal bar chart showing top version groups (8.4.x, 8.0.x, 5.7.x, Other) with instance counts
 
-7. **GSM Framework card** — `bg-gray-900 rounded-xl border border-gray-800 p-5` with three rows:
+7. **Supporting Signal: PXC (Percona XtraDB Cluster)** — trend-tracking panel beneath the PS anchor. **No status badge** — PXC has no Cascade target. Structure:
+   - Section header: `Supporting Signal: PXC (Percona XtraDB Cluster)` (h2, gray subtext "One level down from the PS anchor — no Cascade target, trend tracking only")
+   - **Two KPI tiles** side by side (`grid grid-cols-2 gap-3`): **Active Instances** (trailing 12m, `uniqExact(pillar_db_instance_id)`) and **Active Clusters** (trailing 12m, `uniqExact(tupleElement(metric, 2))` filtered to `db_replication_id`). Same card styling as the PS KPI row: `bg-gray-900 rounded-xl border border-gray-800 p-4 text-center`. Use the neutral white/gray number color (`#f3f4f6`) — NOT the status-colored green/amber/red used on PS.
+   - **Monthly trend** line chart — same visual treatment as the PS monthly trend (solid line, `#4CAF50` green, dots, dark theme axes). Single series, no target line, no projected line.
+   - **Data quality note** directly below the monthly trend: `PXC monthly active is subject to the same Jan 24 2026 pipeline disruption affecting PS. Trailing 12-month cumulative remains reliable.`
+   - **Version distribution** bar chart — horizontal bars, top 10 versions, same styling as PS version distribution. Colors: 8.0.x → `#FF6B35`, 8.4.x → `#4CAF50`, other → `#6b7280`.
+   - Queries and expected sanity values live in `references/cascade-kpi-mysql.md` under "Supporting Signal: PXC".
+
+8. **GSM Framework card** — `bg-gray-900 rounded-xl border border-gray-800 p-5` with three rows:
    - **Goal**: {goal text}
    - **Signal**: {signal text}
    - **Measure**: {measure text}
-   Use left-border accent (`border-l-4 border-l-[#FF6B35]`).
+   Use left-border accent (`border-l-4 border-l-[#FF6B35]`). GSM applies to the PS anchor only — do not restate for PXC.
 
-8. **Data quality notes** — if any months have incomplete data, show a warning banner:
+9. **Data quality notes** — if any months have incomplete data, show a warning banner:
    `⚠ {months} excluded due to incomplete telemetry ingestion. Last reliable month: {month}.`
 
-9. **Key findings** — 3-5 auto-generated bullets:
-   - On-track status with specific numbers
-   - Month-over-month change in active instances
-   - 8.4 adoption acceleration/deceleration
-   - 8.0 EOL migration progress
-   - Any data quality flags
+10. **Key findings** — 3-5 auto-generated bullets:
+    - On-track status with specific numbers
+    - Month-over-month change in active instances
+    - 8.4 adoption acceleration/deceleration
+    - 8.0 EOL migration progress
+    - Any data quality flags
 
-10. **Footer** — `Generated by VISTA | {date} | Source: ClickHouse telemetryd | Metric: uniqExact(pillar_db_instance_id)`
+11. **Footer** — `Generated by VISTA | {date} | Source: ClickHouse telemetryd | Metric: uniqExact(pillar_db_instance_id)`
 
 ---
 

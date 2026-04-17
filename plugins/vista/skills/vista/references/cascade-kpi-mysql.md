@@ -115,3 +115,66 @@ status:
 - Product family filter is `product_family = 'ps'` (NOT `mysql`, NOT `percona-server`, NOT `pillar_product_family`).
 - Always use `uniqExact(pillar_db_instance_id)` for unique instance counts, not `count()`.
 - Column is `pillar_version` (NOT `pillar_db_version`, NOT `db_version`).
+
+---
+
+## Supporting Signal: PXC (Percona XtraDB Cluster)
+
+PS is the anchor. PXC is a **supporting signal** one level down — trend-tracking only, no Cascade target, no status badge. Per the [Notion proposal](https://www.notion.so/33b674d091f3818c8680cd57850a01c5), PXC, PXB, ProxySQL, and the 8.0 EOL split sit under the PS anchor. PXB and ProxySQL have no telemetry; the 8.0 vs 8.4 split is already rendered in the PS secondary-metrics block. This section covers PXC only.
+
+### PXC ClickHouse Notes
+
+- Same table: `telemetryd.pillars_telemetry_phase_1`.
+- Filter: `product_family = 'pxc'`.
+- Cluster identity lives inside the `metrics` array as the key `db_replication_id` (Galera cluster UUID), NOT a top-level column. Use `ARRAY JOIN metrics AS metric` and `tupleElement(metric, 1) = 'db_replication_id'` to extract it.
+
+### Pre-Built PXC Queries
+
+**PXC active instances (trailing 12 months):**
+```sql
+SELECT uniqExact(pillar_db_instance_id) AS pxc_instances
+FROM telemetryd.pillars_telemetry_phase_1
+WHERE product_family = 'pxc'
+  AND create_date >= today() - 365
+```
+
+**PXC active clusters (trailing 12 months):**
+```sql
+SELECT uniqExact(tupleElement(metric, 2)) AS pxc_clusters
+FROM telemetryd.pillars_telemetry_phase_1
+ARRAY JOIN metrics AS metric
+WHERE product_family = 'pxc'
+  AND tupleElement(metric, 1) = 'db_replication_id'
+  AND create_date >= today() - 365
+```
+
+**PXC monthly trend (instances per month, last 12 months):**
+```sql
+SELECT toStartOfMonth(create_date) AS month,
+       uniqExact(pillar_db_instance_id) AS instances
+FROM telemetryd.pillars_telemetry_phase_1
+WHERE product_family = 'pxc'
+  AND create_date >= today() - 365
+GROUP BY month
+ORDER BY month
+```
+
+**PXC version distribution (top 10, trailing 12 months):**
+```sql
+SELECT pillar_version, uniqExact(pillar_db_instance_id) AS instances
+FROM telemetryd.pillars_telemetry_phase_1
+WHERE product_family = 'pxc'
+  AND create_date >= today() - 365
+GROUP BY pillar_version
+ORDER BY instances DESC
+LIMIT 10
+```
+
+### Expected Current Values (sanity check)
+
+- PXC instances trailing 12mo: ~6,700 (verified 2026-04-16: 6,740)
+- PXC clusters trailing 12mo: ~2,950 (verified 2026-04-16: 2,954)
+
+### PXC Data Quality Note
+
+PXC monthly active is subject to the same Jan 24 2026 pipeline disruption affecting PS. Trailing 12-month cumulative remains reliable. Do NOT show a status badge for PXC — it is a trend-tracking supporting signal, not a Cascade target.
