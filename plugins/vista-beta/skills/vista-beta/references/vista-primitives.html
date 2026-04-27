@@ -1,0 +1,1093 @@
+<!--
+  vista-primitives.html — HTML twin of vista-primitives.jsx.
+
+  This file is a paste-verbatim STARTER for HTML reports delivered via Cowork's
+  HTML artifact tool. It mirrors the JSX primitives 1:1: same tokens, same
+  Percona brand SVGs, same chart algorithms, same shell layout. Use this when
+  the only pinnable artifact path in your environment is HTML.
+
+  CONTRACT FOR THE MODEL:
+    1. Read this file in full.
+    2. In your HTML artifact, copy everything between BEGIN VISTA HTML PRIMITIVES
+       and END VISTA HTML PRIMITIVES verbatim (the <style> + the chart-renderer
+       <script>). Do not abridge, summarize, or "clean up".
+    3. Build the report body inside <body class="vista-report" data-theme="dark"
+       data-accent="mysql"> using the documented class names + the four
+       Vista.render* chart functions.
+    4. Emit the full HTML document via Cowork's artifact tool with type text/html
+       and identifier "vista-beta-{report-slug}".
+
+  No <link>, no relative <img src>, no external CSS. Inline everything.
+  Brand SVGs are inline JS strings (defined in the renderer block) so the model
+  doesn't have to maintain SVG markup separately.
+-->
+
+<!-- ============================================================ -->
+<!-- BEGIN VISTA HTML PRIMITIVES — paste verbatim, do not edit    -->
+<!-- ============================================================ -->
+
+<style id="vista-tokens">
+:root, [data-theme="dark"] {
+  --vista-bg:#0B0B10; --vista-surface:#15151C; --vista-surface-2:#1D1D26; --vista-surface-3:#26263280;
+  --vista-border:#26262F; --vista-border-strong:#363644;
+  --vista-text:#F4F4F7; --vista-text-muted:#A7A7B5; --vista-text-subtle:#6D6D7D;
+  --vista-purple:#6E3FF3; --vista-purple-soft:#8C67F5; --vista-yellow:#F5FF5A;
+  --vista-good:#4ADE80; --vista-warning:#FBBF24; --vista-danger:#F87171; --vista-info:#60A5FA;
+  --vista-accent:var(--vista-purple);
+  --vista-chart-1:var(--vista-accent); --vista-chart-2:#38BDF8; --vista-chart-3:#F59E0B;
+  --vista-chart-4:#4ADE80; --vista-chart-5:#F472B6; --vista-chart-6:#A78BFA;
+  --vista-chart-7:#FB7185; --vista-chart-8:#94A3B8;
+  --vista-grid:rgba(255,255,255,0.06); --vista-axis:#8A8A98;
+  --vista-tooltip-bg:#0F0F16; --vista-tooltip-br:#363644;
+  --vista-font-display:"Space Grotesk","Poppins",system-ui,sans-serif;
+  --vista-font-ui:"Inter",system-ui,sans-serif;
+  --vista-font-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+[data-theme="light"] {
+  --vista-bg:#F7F6F2; --vista-surface:#FFFFFF; --vista-surface-2:#FAF9F4; --vista-surface-3:#1B1B2408;
+  --vista-border:#E6E4DC; --vista-border-strong:#CFCDC3;
+  --vista-text:#16161E; --vista-text-muted:#5B5B6A; --vista-text-subtle:#8A8A98;
+  --vista-grid:rgba(0,0,0,0.06); --vista-axis:#6D6D7D;
+  --vista-tooltip-bg:#FFFFFF; --vista-tooltip-br:#E6E4DC;
+}
+[data-accent="mysql"]      { --vista-accent:#E65A15; }
+[data-accent="postgresql"] { --vista-accent:#005ED6; }
+[data-accent="mongodb"]    { --vista-accent:#1FA23A; }
+[data-accent="redis"]      { --vista-accent:#D6362A; }
+[data-accent="kubernetes"] { --vista-accent:#2AA6DF; }
+[data-accent="valkey"]     { --vista-accent:#A83FEF; }
+[data-accent="pmm"]        { --vista-accent:#6E3FF3; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body.vista-report {
+  background: var(--vista-bg);
+  color: var(--vista-text);
+  font-family: var(--vista-font-ui);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.vista-container { max-width: 1180px; margin: 0 auto; }
+
+/* ── Header ─────────────────────────────────────────── */
+.vista-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 32px; border-bottom: 1px solid var(--vista-border); gap: 24px;
+}
+.vista-header-lockup { display: flex; align-items: center; gap: 18px; }
+.vista-header-divider { width: 1px; height: 22px; background: var(--vista-border); }
+.vista-kicker {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--vista-accent);
+}
+.vista-title {
+  margin: 0; font-family: var(--vista-font-display);
+  font-size: 22px; font-weight: 600; letter-spacing: -0.01em; color: var(--vista-text);
+}
+.vista-sub { font-size: 12px; color: var(--vista-text-muted); margin-top: 2px; }
+
+/* ── Footer ─────────────────────────────────────────── */
+.vista-footer {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px;
+  padding: 18px 32px; border-top: 1px solid var(--vista-border);
+  color: var(--vista-text-subtle); font-size: 11.5px; background: var(--vista-surface-2);
+}
+.vista-footer-lockup { display: flex; align-items: center; gap: 10px; }
+.vista-footer-source { text-align: center; }
+.vista-footer-page { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ── Main / cards ───────────────────────────────────── */
+.vista-main { padding: 24px 32px; display: grid; gap: 20px; }
+.vista-card {
+  background: var(--vista-surface); border: 1px solid var(--vista-border);
+  border-radius: 14px; padding: 20px;
+}
+.vista-card-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--vista-text-subtle); margin-bottom: 12px;
+}
+
+/* ── KPIs ───────────────────────────────────────────── */
+.vista-kpi-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.vista-kpi-grid--c2 { grid-template-columns: repeat(2, 1fr); }
+.vista-kpi-grid--c3 { grid-template-columns: repeat(3, 1fr); }
+.vista-kpi-grid--c4 { grid-template-columns: repeat(4, 1fr); }
+.vista-kpi-grid--c5 { grid-template-columns: repeat(5, 1fr); }
+.vista-kpi-grid--c6 { grid-template-columns: repeat(6, 1fr); }
+.vista-kpi {
+  background: var(--vista-surface);
+  border: 1px solid var(--vista-border);
+  border-radius: 14px; padding: 16px 18px;
+}
+.vista-kpi--headline {
+  background: color-mix(in oklab, var(--vista-accent) 10%, var(--vista-surface));
+  border: 1px solid transparent; border-left: 3px solid var(--vista-accent);
+}
+.vista-kpi-label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--vista-text-subtle);
+}
+.vista-kpi-value {
+  font-family: var(--vista-font-display); font-size: 28px; font-weight: 600;
+  letter-spacing: -0.015em; margin-top: 6px; color: var(--vista-text);
+  font-variant-numeric: tabular-nums;
+}
+.vista-kpi--headline .vista-kpi-value { color: var(--vista-accent); }
+.vista-kpi--good .vista-kpi-value     { color: var(--vista-good); }
+.vista-kpi--warning .vista-kpi-value  { color: var(--vista-warning); }
+.vista-kpi--danger .vista-kpi-value   { color: var(--vista-danger); }
+.vista-kpi-delta { font-size: 12px; margin-top: 4px; font-weight: 600; color: var(--vista-good); }
+.vista-kpi-delta--down { color: var(--vista-danger); }
+
+/* ── Status banner ──────────────────────────────────── */
+.vista-banner {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; border-radius: 12px;
+  font-family: var(--vista-font-display); font-weight: 600; letter-spacing: -0.01em;
+  font-size: 15px; line-height: 1.3;
+}
+.vista-banner-dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in oklab, currentColor 20%, transparent); flex: 0 0 auto; }
+.vista-banner--good    { background: color-mix(in oklab, var(--vista-good) 14%, transparent);    color: var(--vista-good); }
+.vista-banner--warning { background: color-mix(in oklab, var(--vista-warning) 14%, transparent); color: var(--vista-warning); }
+.vista-banner--danger  { background: color-mix(in oklab, var(--vista-danger) 14%, transparent);  color: var(--vista-danger); }
+
+/* ── Callouts ───────────────────────────────────────── */
+.vista-callout {
+  border-left: 3px solid var(--vista-accent);
+  background: var(--vista-surface-3);
+  padding: 16px 20px; border-radius: 10px;
+}
+.vista-callout--warning { border-left-color: var(--vista-warning); }
+.vista-callout--action  { border-left-color: var(--vista-purple); }
+.vista-callout-label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--vista-text-subtle); margin-bottom: 6px;
+}
+.vista-callout-body { font-size: 14px; color: var(--vista-text); line-height: 1.5; max-width: 72ch; }
+.vista-callout-body ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+
+/* ── Progress strip ─────────────────────────────────── */
+.vista-progress {
+  background: var(--vista-surface); border: 1px solid var(--vista-border);
+  border-radius: 14px; padding: 18px; display: grid; gap: 12px;
+}
+.vista-progress-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--vista-text-muted); }
+.vista-progress-row--small { font-size: 11px; color: var(--vista-text-subtle); }
+.vista-progress-bar {
+  position: relative; height: 14px; border-radius: 999px;
+  background: var(--vista-surface-2); border: 1px solid var(--vista-border); overflow: hidden;
+}
+.vista-progress-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--vista-accent) 60%, transparent), var(--vista-accent));
+}
+.vista-progress-pace {
+  position: absolute; top: -4px; bottom: -4px; width: 2px;
+  background: var(--vista-text-subtle);
+}
+
+/* ── Chart wrapper (sized for hand-rolled SVG renderers) ──── */
+.vista-chart { width: 100%; display: block; }
+.vista-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.vista-chart text { font-family: var(--vista-font-ui); }
+
+/* ── Brand SVG fills (auto-flip with data-theme) ──── */
+.vista-wordmark { color: #FFFFFF; }                                /* dark theme default → white */
+[data-theme="light"] .vista-wordmark { color: #282727; }           /* light theme → dark */
+.vista-logomark { color: #F6FE54; }                                /* dark theme → brand yellow */
+[data-theme="light"] .vista-logomark { color: #653DF4; }           /* light theme → brand purple */
+
+/* ── Print / PDF export ──────────────────────────────
+   Print engines (incl. Chrome's "Save as PDF") strip backgrounds and
+   page-break content arbitrarily by default. These rules:
+   - Force backgrounds + colors to print as authored (no white-out).
+   - Keep cards / charts / KPI tiles / callouts / banners intact across pages.
+   - Set a sensible page size + margins.
+   - Force the body to letter-width so the dashboard scales cleanly to a page.
+   --------------------------------------------------- */
+@page {
+  size: Letter;
+  margin: 0.4in 0.35in;
+}
+@media print {
+  html, body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background: var(--vista-bg) !important;
+  }
+  body.vista-report { min-height: 0; }
+  .vista-container { max-width: none; }
+  .vista-main { padding: 12px 0; gap: 14px; }
+
+  /* Group-level break protection: keep these whole units (cards, callouts,
+     status banners, KPI grids, progress strips, tables) intact across pages.
+     Use avoid-page (more specific than avoid) to be explicit we mean page
+     breaks, not column breaks. */
+  .vista-card,
+  .vista-callout,
+  .vista-banner,
+  .vista-progress,
+  .vista-kpi-grid,
+  .vista-table {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  /* DO NOT put break-inside on .vista-chart or .vista-kpi individually.
+     Nested break-inside-avoid (chart-inside-card or KPI-inside-grid) confuses
+     the print layout engine: it tries to keep both intact, fails, and either
+     leaves the inner element empty (chart card with title but no chart body)
+     or pushes content to overlap the next element. The card / grid wrapper
+     handles page protection; charts and tiles inherit. */
+  .vista-chart, .vista-kpi {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  /* When a card spans more height than the page can hold, the engine MUST
+     break it. Force the break to happen BEFORE the card so we don't get
+     orphan card titles at the bottom of the previous page. */
+  .vista-card { break-before: auto; }
+
+  /* Header / footer pinning. */
+  .vista-header { break-after: avoid; page-break-after: avoid; }
+  .vista-footer { break-before: avoid; page-break-before: avoid; }
+
+  /* SVG charts: clip overflow in print so axis labels can't bleed onto the
+     next element. (On screen we want overflow:visible for tooltips.) */
+  .vista-chart svg {
+    width: 100% !important;
+    height: auto !important;
+    overflow: hidden !important;
+  }
+
+  /* Hide elements that have no meaning in print. */
+  [data-no-print], .vista-no-print { display: none !important; }
+
+  /* Heatmap / tables: shrink type slightly if content is wide. */
+  .vista-table { font-size: 11.5px; }
+}
+
+/* ── Generic typography helpers ─────────────────────── */
+.vista-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--vista-text-subtle);
+}
+.vista-h2 {
+  font-family: var(--vista-font-display); font-size: 20px; font-weight: 600;
+  letter-spacing: -0.01em; margin: 0;
+}
+.vista-muted { color: var(--vista-text-muted); }
+.vista-subtle { color: var(--vista-text-subtle); }
+
+/* ── Tables ─────────────────────────────────────────── */
+.vista-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+.vista-table th {
+  text-align: left; font-weight: 700; font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--vista-text-subtle);
+  padding: 10px 12px; border-bottom: 1px solid var(--vista-border);
+}
+.vista-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--vista-border); color: var(--vista-text);
+}
+.vista-table tr:last-child td { border-bottom: 0; }
+</style>
+
+<script id="vista-renderer">
+/* eslint-disable */
+window.Vista = (function () {
+  // Chart registry — every renderX call records (element, fn, opts) so setTheme
+  // can re-paint each chart with newly-resolved tokens. Keyed by element so
+  // calling render twice on the same div replaces the prior registration.
+  var registry = new Map();
+  function register(targetEl, fn, opts) {
+    var el = typeof targetEl === "string" ? document.getElementById(targetEl) : targetEl;
+    if (el) registry.set(el, { fn: fn, opts: opts });
+  }
+  function rerenderAll() {
+    registry.forEach(function (entry, el) {
+      try { entry.fn(el, entry.opts); } catch (e) { /* swallow per-chart errors */ }
+    });
+  }
+
+  // Resolve a "color" — accepts hex, var(--token), or bare --token name. Falls
+  // back to provided default if the value is empty (e.g. before tokens applied).
+  function resolveColor(c, fallback) {
+    if (!c) return fallback;
+    var s = String(c).trim();
+    if (s.charAt(0) === "#") return s;
+    var m = /^var\(\s*(--[\w-]+)\s*\)$/.exec(s);
+    var name = m ? m[1] : (s.indexOf("--") === 0 ? s : null);
+    if (name) {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return v || fallback;
+    }
+    return s;
+  }
+
+  function chartPalette() {
+    return [1,2,3,4,5,6,7,8].map(function (i) {
+      return resolveColor("--vista-chart-" + i, "#888");
+    });
+  }
+
+  // ----- Hover tooltip (shared across chart types) -------------------------
+  // Lazy-mount per chart wrapper; reused on every mousemove.
+  function ensureTip(parent) {
+    if (parent._vTip && parent.contains(parent._vTip)) return parent._vTip;
+    var tip = document.createElement("div");
+    tip.className = "vista-tip";
+    tip.setAttribute("data-no-print", "");
+    tip.style.cssText = [
+      "position:absolute","pointer-events:none","opacity:0",
+      "transition:opacity 80ms","z-index:50",
+      "background:var(--vista-tooltip-bg)",
+      "border:1px solid var(--vista-tooltip-br)",
+      "border-radius:10px","padding:10px 12px",
+      "font-family:var(--vista-font-ui)","font-size:12px",
+      "color:var(--vista-text)",
+      "box-shadow:0 8px 24px rgba(0,0,0,0.35)",
+      "min-width:140px","max-width:280px"
+    ].join(";");
+    if (getComputedStyle(parent).position === "static") parent.style.position = "relative";
+    parent.appendChild(tip);
+    parent._vTip = tip;
+    return tip;
+  }
+  function showTip(parent, html, evt) {
+    var tip = ensureTip(parent);
+    tip.innerHTML = html;
+    var rect = parent.getBoundingClientRect();
+    var pad = 12;
+    // Use a temporary visibility trick to measure size before positioning.
+    tip.style.opacity = "0"; tip.style.left = "-9999px"; tip.style.top = "0";
+    tip.style.opacity = "1";
+    var tw = tip.offsetWidth, th = tip.offsetHeight;
+    var x = evt.clientX - rect.left + pad;
+    var y = evt.clientY - rect.top + pad;
+    if (x + tw > rect.width)  x = (evt.clientX - rect.left) - tw - pad;
+    if (y + th > rect.height) y = (evt.clientY - rect.top) - th - pad;
+    if (x < 0) x = 4;
+    if (y < 0) y = 4;
+    tip.style.left = x + "px";
+    tip.style.top  = y + "px";
+  }
+  function hideTip(parent) {
+    if (parent._vTip) parent._vTip.style.opacity = "0";
+  }
+  // Wire a mousemove/mouseleave on every node matching `selector` inside `el`,
+  // with `getHtml(node, evt)` returning the tooltip body. Returning falsy hides.
+  function attachTracker(el, selector, getHtml) {
+    var nodes = el.querySelectorAll(selector);
+    nodes.forEach(function (node) {
+      node.addEventListener("mousemove", function (evt) {
+        var html = getHtml(node, evt);
+        if (html) showTip(el, html, evt); else hideTip(el);
+      });
+      node.addEventListener("mouseleave", function () { hideTip(el); });
+    });
+  }
+  // Standard tooltip body — title (X label) + one row per series.
+  function tipBody(label, rows) {
+    var head = '<div style="color:var(--vista-text-subtle);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">' + label + '</div>';
+    var body = rows.map(function (r) {
+      var v = (typeof r.value === "number") ? r.value.toLocaleString() : r.value;
+      return '<div style="display:flex;justify-content:space-between;gap:18px;align-items:center;padding:2px 0">' +
+        '<span style="display:inline-flex;align-items:center;gap:8px">' +
+        '<span style="width:8px;height:8px;border-radius:2px;background:' + r.color + '"></span>' +
+        '<span style="color:var(--vista-text-muted)">' + r.name + '</span></span>' +
+        '<span style="font-variant-numeric:tabular-nums;font-weight:600">' + v + (r.unit||"") + '</span></div>';
+    }).join("");
+    return head + body;
+  }
+
+  function fmtNum(v) {
+    if (typeof v !== "number" || isNaN(v)) return "";
+    var a = Math.abs(v);
+    if (a >= 1e6) return (v/1e6).toFixed(v % 1e6 ? 1 : 0) + "M";
+    if (a >= 1e3) return (v/1e3).toFixed(v % 1e3 ? 1 : 0) + "k";
+    return String(v);
+  }
+
+  function niceStep(raw) {
+    if (raw <= 0) return 1;
+    var exp = Math.pow(10, Math.floor(Math.log10(raw)));
+    var f = raw / exp;
+    return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * exp;
+  }
+
+  // ----- Brand SVGs (inline) ------------------------------------------------
+  var SVG_NS = 'xmlns="http://www.w3.org/2000/svg"';
+  var WORDMARK_PATHS = '<path d="M356.5,152.6h-18.8v33.6H313v-112h45.9c26.8,0,43,15.8,43,38.7v0.3C401.9,139.1,381.7,152.6,356.5,152.6L356.5,152.6z M376.9,113.4c0-11-7.7-17-20.1-17h-19.1v34.2h19.6c12.4,0,19.6-7.4,19.6-17V113.4L376.9,113.4z"/><polygon points="415.7,186.2 415.7,74.2 500.5,74.2 500.5,96.1 440.3,96.1 440.3,118.9 493.3,118.9 493.3,140.8 440.3,140.8 440.3,164.3 501.3,164.3 501.3,186.3 415.7,186.3"/><path d="M588.9,186.2l-24.1-35.8h-19.4v35.8h-24.7v-112H572c26.5,0,42.4,13.9,42.4,37v0.3c0,18.1-9.8,29.5-24.1,34.7l27.5,40H588.9L588.9,186.2z M589.4,112.4c0-10.6-7.4-16-19.4-16h-24.6v32.2h25.1c12,0,18.9-6.4,18.9-15.8V112.4L589.4,112.4z"/><path d="M685.3,189.2c-33.5,0-58.4-25.8-58.4-58.4v-0.3c0-32.3,24.4-58.7,59.4-58.7c21.5,0,34.3,7.1,44.9,17.5l-15.9,18.3c-8.8-8-17.7-12.8-29.1-12.8c-19.2,0-33,15.9-33,35.4v0.3c0,19.5,13.5,35.7,33,35.7c13,0,21-5.2,29.9-13.3l15.9,16C720.3,181.4,707.3,189.2,685.3,189.2L685.3,189.2z"/><path d="M798.2,189.2c-35.2,0-60.4-26.1-60.4-58.4v-0.3c0-32.3,25.5-58.7,60.7-58.7c35.1,0,60.4,26.1,60.4,58.4v0.3C858.8,162.8,833.3,189.2,798.2,189.2 M832.7,130.5c0-19.5-14.3-35.7-34.5-35.7S764,110.7,764,130.2v0.3c0,19.5,14.3,35.7,34.5,35.7s34.2-15.9,34.2-35.4V130.5z"/><polygon points="994.9,186.3 1050.3,71.8 1105.6,186.3 1077.8,186.3 1050.3,129.3 1022.8,186.3"/><polygon points="984.7,74.2 984.7,189.2 900.4,121.1 900.4,186.1 874.1,186.1 874.1,71.8 958.5,139.6 958.5,74.2"/><path d="M96.2,107.2l63.5,110.1h-127L96.2,107.2z M166,49.9c10.3-4.9,21.8-6,33-3c12.3,3.3,22.6,11.2,29,22.3c12.6,21.8,6,49.4-14.4,63.3L166,49.9z M106.6,89.1l30.6-53l0,0l104.5,181.2h-61.2L106.6,89.1z M96.2,71.1L1.5,235.3H273l-50.3-87.2c29-18.9,38.4-57.6,20.9-88c-8.8-15.2-23-26.1-40-30.7c-15.7-4.2-32.2-2.5-46.6,4.8L137.2,0L96.2,71.1z"/><path d="M1123,73.3c1.7,1,3.1,2.4,4.1,4.2c1,1.8,1.5,3.8,1.5,6s-0.5,4.2-1.5,6s-2.3,3.2-4.1,4.2c-1.7,1-3.7,1.5-5.9,1.5c-2.2,0-4.2-0.5-5.9-1.5c-1.7-1-3.1-2.4-4.1-4.2c-1-1.8-1.5-3.8-1.5-6s0.5-4.2,1.5-6s2.3-3.2,4.1-4.2c1.7-1,3.7-1.5,5.9-1.5S1121.2,72.3,1123,73.3z M1122.2,92.4c1.5-0.9,2.7-2.1,3.5-3.7s1.2-3.3,1.2-5.2s-0.4-3.7-1.2-5.2c-0.8-1.5-2-2.8-3.5-3.6c-1.5-0.9-3.2-1.3-5.1-1.3c-2.9,0-5.3,1-7.1,2.9c-1.8,1.9-2.7,4.3-2.7,7.3c0,1.9,0.4,3.7,1.2,5.2c0.8,1.6,2,2.8,3.5,3.7c1.5,0.9,3.2,1.3,5.1,1.3C1119,93.7,1120.7,93.3,1122.2,92.4z M1121.2,83.3c-0.6,0.7-1.5,1.1-2.6,1.2l3.8,5.3l-2.2,0.1l-3.7-5.4h-1.9v5.4h-1.9V77.1h5.3c1.3,0,2.3,0.3,3,1c0.7,0.6,1.1,1.6,1.1,2.8C1122.2,81.8,1121.8,82.7,1121.2,83.3z M1114.7,82.9h3.2c1.6,0,2.5-0.7,2.5-2.1c0-0.7-0.2-1.2-0.7-1.5c-0.4-0.3-1-0.5-1.8-0.5h-3.2V82.9z"/>';
+  var LOGOMARK_PATH = '<path d="M108.9,139.5l63.5,110.1h-127L108.9,139.5z M178.8,82.2c10.3-4.9,21.8-6,33-3c12.3,3.3,22.6,11.2,29,22.3c12.6,21.8,6,49.4-14.4,63.3L178.8,82.2z M119.3,121.4l30.6-53l0,0l104.5,181.2h-61.2L119.3,121.4z M108.9,103.4L14.2,267.6h271.5l-50.3-87.2c29-18.9,38.4-57.6,20.9-88c-8.8-15.2-23-26.1-40-30.7c-15.7-4.2-32.2-2.5-46.6,4.8l-19.8-34.2L108.9,103.4z"/>';
+
+  // Brand SVGs use currentColor + a CSS class so fills auto-flip when the
+  // ancestor [data-theme] changes — no need to pass theme. Theme arg accepted
+  // for backwards compat but no longer used.
+  function wordmark(_theme, height) {
+    return '<svg ' + SVG_NS + ' class="vista-wordmark" viewBox="0 0 1130 235.3" height="' +
+           (height||26) + '" fill="currentColor" aria-label="Percona" role="img">' + WORDMARK_PATHS + '</svg>';
+  }
+  function logomark(_theme, size) {
+    return '<svg ' + SVG_NS + ' class="vista-logomark" viewBox="0 0 300 300" height="' +
+           (size||20) + '" width="' + (size||20) + '" fill="currentColor" aria-label="Percona" role="img">' + LOGOMARK_PATH + '</svg>';
+  }
+
+  // ----- TrendLine ---------------------------------------------------------
+  // opts: { data, series:[{key,name,area,dashed,color}], xKey="month",
+  //         height=300, refLines:[{y,label,color}] }
+  function renderTrendLine(targetEl, opts) {
+    var el = typeof targetEl === "string" ? document.getElementById(targetEl) : targetEl;
+    if (!el) return;
+    var data = opts.data || [];
+    var series = opts.series || [];
+    var xKey = opts.xKey || "month";
+    var height = opts.height || 300;
+    var refLines = opts.refLines || [];
+    var W = 800, H = height;
+    var PAD = { top: 12, right: 24, bottom: 28, left: 56 };
+    var plotW = W - PAD.left - PAD.right;
+    var plotH = H - PAD.top - PAD.bottom;
+
+    var palette = chartPalette();
+    var axisColor = resolveColor("--vista-axis", "#8A8A98");
+    var gridColor = resolveColor("--vista-grid", "rgba(255,255,255,0.06)");
+    var borderColor = resolveColor("--vista-border", "#26262F");
+    var borderStrong = resolveColor("--vista-border-strong", "#363644");
+    var textMuted = resolveColor("--vista-text-muted", "#A7A7B5");
+
+    var values = [];
+    data.forEach(function (row) {
+      series.forEach(function (s) {
+        var v = row[s.key];
+        if (typeof v === "number" && !isNaN(v)) values.push(v);
+      });
+    });
+    refLines.forEach(function (r) { if (typeof r.y === "number") values.push(r.y); });
+    if (!values.length) values = [0, 1];
+    var yMin = Math.min.apply(null, values), yMax = Math.max.apply(null, values);
+    if (yMin === yMax) { yMin -= 1; yMax += 1; }
+    var span = yMax - yMin;
+    yMax = yMax + span * 0.06;
+    yMin = yMin >= 0 ? Math.max(0, yMin - span * 0.06) : yMin - span * 0.06;
+
+    var N = data.length;
+    var xAt = function (i) { return PAD.left + (N <= 1 ? plotW/2 : (i/(N-1))*plotW); };
+    var yAt = function (v) { return PAD.top + (1 - (v - yMin)/(yMax - yMin)) * plotH; };
+
+    var step = niceStep((yMax - yMin)/5);
+    var yTicks = [];
+    var t = Math.ceil(yMin / step) * step;
+    while (t <= yMax) { yTicks.push(t); t += step; }
+
+    var idBase = "vg" + Math.floor(Math.random()*1e6);
+
+    var defs = "<defs>";
+    series.forEach(function (s, i) {
+      var color = resolveColor(s.color, palette[i % palette.length]);
+      defs += '<linearGradient id="' + idBase + "-" + i + '" x1="0" y1="0" x2="0" y2="1">'
+            + '<stop offset="0%" stop-color="' + color + '" stop-opacity="0.32"/>'
+            + '<stop offset="100%" stop-color="' + color + '" stop-opacity="0"/>'
+            + '</linearGradient>';
+    });
+    defs += "</defs>";
+
+    var grid = yTicks.map(function (v) {
+      var y = yAt(v);
+      return '<line x1="' + PAD.left + '" x2="' + (W-PAD.right) + '" y1="' + y + '" y2="' + y +
+             '" stroke="' + gridColor + '" stroke-width="1" stroke-dasharray="2 4"/>';
+    }).join("");
+    var yLabels = yTicks.map(function (v) {
+      var y = yAt(v);
+      return '<text x="' + (PAD.left - 8) + '" y="' + y + '" fill="' + axisColor +
+             '" font-size="11" text-anchor="end" dominant-baseline="middle" style="font-variant-numeric:tabular-nums">' +
+             fmtNum(v) + '</text>';
+    }).join("");
+
+    var baseline = '<line x1="' + PAD.left + '" x2="' + (W-PAD.right) + '" y1="' + (PAD.top+plotH) +
+                   '" y2="' + (PAD.top+plotH) + '" stroke="' + borderColor + '" stroke-width="1"/>';
+
+    var xStep = Math.max(1, Math.ceil(N / 12));
+    var xLabels = data.map(function (row, i) {
+      if (i % xStep !== 0 && i !== N - 1) return "";
+      return '<text x="' + xAt(i) + '" y="' + (PAD.top+plotH+16) + '" fill="' + axisColor +
+             '" font-size="11" text-anchor="middle">' + (row[xKey] || "") + '</text>';
+    }).join("");
+
+    var refs = refLines.map(function (r) {
+      if (typeof r.y !== "number") return "";
+      var col = resolveColor(r.color, borderStrong);
+      var y = yAt(r.y);
+      var lab = r.label
+        ? '<text x="' + (W-PAD.right-6) + '" y="' + (y-4) + '" fill="' + col +
+          '" font-size="10" text-anchor="end">' + r.label + '</text>'
+        : "";
+      return '<line x1="' + PAD.left + '" x2="' + (W-PAD.right) + '" y1="' + y + '" y2="' + y +
+             '" stroke="' + col + '" stroke-width="1" stroke-dasharray="4 4"/>' + lab;
+    }).join("");
+
+    var seriesPaths = series.map(function (s, i) {
+      var color = resolveColor(s.color, palette[i % palette.length]);
+      var linePts = [], areaPts = [];
+      var firstX = null, lastX = null;
+      data.forEach(function (row, j) {
+        var v = row[s.key];
+        if (typeof v !== "number" || isNaN(v)) return;
+        var x = xAt(j), y = yAt(v);
+        linePts.push((linePts.length ? "L" : "M") + x + " " + y);
+        if (areaPts.length === 0) { areaPts.push("M" + x + " " + y); firstX = x; }
+        else areaPts.push("L" + x + " " + y);
+        lastX = x;
+      });
+      if (!linePts.length) return "";
+      var areaD = "";
+      if (s.area) {
+        areaD = areaPts.join(" ") + " L" + lastX + " " + (PAD.top+plotH) + " L" + firstX + " " + (PAD.top+plotH) + " Z";
+      }
+      var lineD = linePts.join(" ");
+      var dashedAttr = s.dashed ? ' stroke-dasharray="6 4"' : "";
+      var sw = s.dashed ? 2 : 2.5;
+      var dots = s.dashed ? "" : data.map(function (row, j) {
+        var v = row[s.key];
+        if (typeof v !== "number" || isNaN(v)) return "";
+        return '<circle cx="' + xAt(j) + '" cy="' + yAt(v) + '" r="3" fill="' + color + '"/>';
+      }).join("");
+      return (s.area ? '<path d="' + areaD + '" fill="url(#' + idBase + "-" + i + ')"/>' : "") +
+             '<path d="' + lineD + '" fill="none" stroke="' + color +
+             '" stroke-width="' + sw + '" stroke-linecap="round" stroke-linejoin="round"' + dashedAttr + '/>' +
+             dots;
+    }).join("");
+
+    // Tracking bands — invisible vertical strips, one per data point.
+    var bandW = N > 0 ? (W - PAD.left - PAD.right) / N : 0;
+    var tracks = data.map(function (row, i) {
+      var x = xAt(i) - bandW / 2;
+      return '<rect class="v-trend-track" data-i="' + i + '" x="' + x + '" y="' + PAD.top +
+             '" width="' + bandW + '" height="' + plotH + '" fill="transparent" pointer-events="all"/>';
+    }).join("");
+
+    el.innerHTML =
+      '<div class="vista-chart" style="aspect-ratio:' + W + '/' + H + ';min-height:' + Math.round(H*0.7) + 'px">' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+        defs + grid + yLabels + baseline + xLabels + refs + seriesPaths + tracks +
+      '</svg></div>';
+
+    var resolved = series.map(function (s, i) {
+      return { key: s.key, name: s.name, color: resolveColor(s.color, chartPalette()[i % 8]) };
+    });
+    attachTracker(el, ".v-trend-track", function (node) {
+      var i = parseInt(node.getAttribute("data-i"), 10);
+      var row = data[i];
+      var rows = resolved
+        .filter(function (s) { return typeof row[s.key] === "number" && !isNaN(row[s.key]); })
+        .map(function (s) { return { name: s.name, value: row[s.key], color: s.color }; });
+      if (!rows.length) return null;
+      return tipBody(row[xKey] || "", rows);
+    });
+    register(el, renderTrendLine, opts);
+  }
+
+  // ----- StackedHBar -------------------------------------------------------
+  // opts: { data:[{name, k1:n, k2:n,...}], keys:[k1,k2,...], colors? }
+  function renderStackedHBar(targetEl, opts) {
+    var el = typeof targetEl === "string" ? document.getElementById(targetEl) : targetEl;
+    if (!el) return;
+    var data = opts.data || [];
+    var keys = opts.keys || [];
+    var palette = chartPalette();
+    var colors = (opts.colors || keys.map(function (_, i) { return palette[(i+1) % palette.length]; }))
+      .map(function (c, i) { return resolveColor(c, palette[(i+1) % palette.length]); });
+    var rowH = 36;
+    var H = Math.max(140, data.length * (rowH + 8) + 30);
+    var W = 800;
+    var PAD = { top: 8, right: 24, bottom: 22, left: 130 };
+    var plotW = W - PAD.left - PAD.right;
+    var rowTotals = data.map(function (row) {
+      return keys.reduce(function (s, k) { return s + (Number(row[k]) || 0); }, 0);
+    });
+    var maxTotal = Math.max.apply(null, rowTotals.length ? rowTotals : [1]) || 1;
+    var axisColor = resolveColor("--vista-axis", "#8A8A98");
+    var textColor = resolveColor("--vista-text", "#F4F4F7");
+    var borderColor = resolveColor("--vista-border", "#26262F");
+
+    var bars = data.map(function (row, i) {
+      var y = PAD.top + i * (rowH + 8);
+      var x = PAD.left;
+      var segs = keys.map(function (k, ki) {
+        var v = Number(row[k]) || 0;
+        var w = (v / maxTotal) * plotW;
+        var rect = '<rect x="' + x + '" y="' + y + '" width="' + Math.max(0, w-1) + '" height="' + rowH +
+                   '" fill="' + colors[ki] + '"' +
+                   (ki === keys.length-1 ? ' rx="6" ry="6"' : '') + '/>';
+        x += w;
+        return rect;
+      }).join("");
+      var label = '<text x="' + (PAD.left - 10) + '" y="' + (y + rowH/2) + '" fill="' + textColor +
+                  '" font-size="12" text-anchor="end" dominant-baseline="middle">' + row.name + '</text>';
+      var totalLabel = '<text x="' + (PAD.left + plotW + 6) + '" y="' + (y + rowH/2) + '" fill="' + axisColor +
+                       '" font-size="11" dominant-baseline="middle" style="font-variant-numeric:tabular-nums">' +
+                       rowTotals[i].toLocaleString() + '</text>';
+      // Tracking band over the whole row for hover.
+      var track = '<rect class="v-stack-track" data-i="' + i + '" x="' + PAD.left + '" y="' + y +
+                  '" width="' + plotW + '" height="' + rowH + '" fill="transparent" pointer-events="all"/>';
+      return label + segs + totalLabel + track;
+    }).join("");
+
+    var legendY = PAD.top + data.length * (rowH + 8) + 14;
+    var lx = PAD.left;
+    var legend = keys.map(function (k, i) {
+      var item = '<rect x="' + lx + '" y="' + (legendY-8) + '" width="10" height="10" rx="2" fill="' + colors[i] + '"/>' +
+                 '<text x="' + (lx + 16) + '" y="' + legendY + '" fill="' + axisColor +
+                 '" font-size="11" dominant-baseline="middle">' + k + '</text>';
+      lx += 16 + (k.length * 7) + 18;
+      return item;
+    }).join("");
+
+    var totalH = H + 24;
+    el.innerHTML =
+      '<div class="vista-chart" style="aspect-ratio:' + W + '/' + totalH + ';min-height:' + Math.round(totalH*0.7) + 'px">' +
+      '<svg viewBox="0 0 ' + W + ' ' + totalH + '">' +
+        bars + legend +
+      '</svg></div>';
+    attachTracker(el, ".v-stack-track", function (node) {
+      var i = parseInt(node.getAttribute("data-i"), 10);
+      var row = data[i];
+      var rows = keys.map(function (k, ki) {
+        return { name: k, value: Number(row[k]) || 0, color: colors[ki] };
+      });
+      rows.push({ name: "Total", value: rowTotals[i], color: textColor });
+      return tipBody(row.name, rows);
+    });
+    register(el, renderStackedHBar, opts);
+  }
+
+  // ----- Donut -------------------------------------------------------------
+  // opts: { data:[{name, value}], colors?, size=200 }
+  function renderDonut(targetEl, opts) {
+    var el = typeof targetEl === "string" ? document.getElementById(targetEl) : targetEl;
+    if (!el) return;
+    var data = opts.data || [];
+    var size = opts.size || 200;
+    var palette = chartPalette();
+    var colors = (opts.colors || palette).map(function (c, i) { return resolveColor(c, palette[i % palette.length]); });
+    var total = data.reduce(function (s, d) { return s + (Number(d.value) || 0); }, 0) || 1;
+    var inner = size * 0.32, outer = size * 0.47;
+    var cx = size/2, cy = size/2;
+    var textSubtle = resolveColor("--vista-text-subtle", "#6D6D7D");
+    var textMuted  = resolveColor("--vista-text-muted",  "#A7A7B5");
+    var textColor  = resolveColor("--vista-text",        "#F4F4F7");
+
+    var startAngle = -Math.PI/2;
+    var paths = data.map(function (d, i) {
+      var v = Number(d.value) || 0;
+      var ang = (v/total) * Math.PI * 2;
+      var endAngle = startAngle + ang;
+      var p = donutSlice(cx, cy, inner, outer, startAngle, endAngle - 0.01);
+      var col = colors[i % colors.length];
+      startAngle = endAngle;
+      return '<path class="v-donut-slice" data-i="' + i + '" d="' + p + '" fill="' + col + '" pointer-events="all"/>';
+    }).join("");
+
+    var center =
+      '<text x="' + cx + '" y="' + (cy-6) + '" fill="' + textSubtle +
+      '" font-size="10" text-anchor="middle" letter-spacing="1.2" style="text-transform:uppercase">Total</text>' +
+      '<text x="' + cx + '" y="' + (cy+14) + '" fill="' + textColor +
+      '" font-size="22" font-weight="600" text-anchor="middle" style="font-variant-numeric:tabular-nums">' +
+      total.toLocaleString() + '</text>';
+
+    var legendItems = data.map(function (d, i) {
+      var col = colors[i % colors.length];
+      return '<li style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:3px 0;font-size:12.5px">' +
+             '<span style="display:inline-flex;align-items:center;gap:8px;color:' + textMuted + '">' +
+             '<span style="width:10px;height:10px;border-radius:3px;background:' + col + '"></span>' +
+             d.name + '</span>' +
+             '<span style="font-variant-numeric:tabular-nums;font-weight:600">' +
+             (Number(d.value) || 0).toLocaleString() + '</span>' +
+             '</li>';
+    }).join("");
+
+    el.innerHTML =
+      '<div style="display:flex;align-items:center;gap:20px;position:relative">' +
+        '<div style="position:relative;width:' + size + 'px;height:' + size + 'px;flex:0 0 ' + size + 'px">' +
+          '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '">' +
+            paths + center +
+          '</svg>' +
+        '</div>' +
+        '<ul style="list-style:none;padding:0;margin:0;flex:1">' + legendItems + '</ul>' +
+      '</div>';
+    attachTracker(el, ".v-donut-slice", function (node) {
+      var i = parseInt(node.getAttribute("data-i"), 10);
+      var d = data[i];
+      var v = Number(d.value) || 0;
+      var pct = total > 0 ? Math.round((v/total)*1000)/10 : 0;
+      return tipBody(d.name, [{
+        name: "Value", value: v, color: colors[i % colors.length]
+      }, {
+        name: "% of total", value: pct + "%", color: textSubtle
+      }]);
+    });
+    register(el, renderDonut, opts);
+  }
+  function donutSlice(cx, cy, inner, outer, a0, a1) {
+    var x0 = cx + outer * Math.cos(a0), y0 = cy + outer * Math.sin(a0);
+    var x1 = cx + outer * Math.cos(a1), y1 = cy + outer * Math.sin(a1);
+    var x2 = cx + inner * Math.cos(a1), y2 = cy + inner * Math.sin(a1);
+    var x3 = cx + inner * Math.cos(a0), y3 = cy + inner * Math.sin(a0);
+    var large = (a1 - a0) > Math.PI ? 1 : 0;
+    return "M " + x0 + " " + y0 +
+           " A " + outer + " " + outer + " 0 " + large + " 1 " + x1 + " " + y1 +
+           " L " + x2 + " " + y2 +
+           " A " + inner + " " + inner + " 0 " + large + " 0 " + x3 + " " + y3 + " Z";
+  }
+
+  // ----- VersionBars (single-series ranked horizontal) ---------------------
+  function renderVersionBars(targetEl, opts) {
+    var el = typeof targetEl === "string" ? document.getElementById(targetEl) : targetEl;
+    if (!el) return;
+    var data = opts.data || [];
+    var W = 800;
+    var rowH = 24;
+    var H = Math.max(120, data.length * (rowH + 6) + 12);
+    var PAD = { top: 6, right: 60, bottom: 6, left: 110 };
+    var plotW = W - PAD.left - PAD.right;
+    var maxVal = data.reduce(function (m, d) { return Math.max(m, Number(d.value) || 0); }, 0) || 1;
+    var accent = resolveColor("--vista-accent", "#6E3FF3");
+    var textColor = resolveColor("--vista-text", "#F4F4F7");
+    var axisColor = resolveColor("--vista-axis", "#8A8A98");
+
+    var bars = data.map(function (d, i) {
+      var y = PAD.top + i * (rowH + 6);
+      var v = Number(d.value) || 0;
+      var w = (v / maxVal) * plotW;
+      return '<text x="' + (PAD.left - 8) + '" y="' + (y + rowH/2) + '" fill="' + textColor +
+               '" font-size="12" text-anchor="end" dominant-baseline="middle">' + d.name + '</text>' +
+             '<rect x="' + PAD.left + '" y="' + y + '" width="' + Math.max(0, w) + '" height="' + rowH +
+               '" fill="' + accent + '" rx="6" ry="6"/>' +
+             '<text x="' + (PAD.left + w + 6) + '" y="' + (y + rowH/2) + '" fill="' + axisColor +
+               '" font-size="11" dominant-baseline="middle" style="font-variant-numeric:tabular-nums">' +
+               v.toLocaleString() + '</text>' +
+             '<rect class="v-vbar-track" data-i="' + i + '" x="' + (PAD.left - 100) + '" y="' + y +
+               '" width="' + (plotW + 110) + '" height="' + rowH + '" fill="transparent" pointer-events="all"/>';
+    }).join("");
+
+    el.innerHTML =
+      '<div class="vista-chart" style="aspect-ratio:' + W + '/' + H + ';min-height:' + Math.round(H*0.7) + 'px">' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '">' + bars + '</svg></div>';
+    attachTracker(el, ".v-vbar-track", function (node) {
+      var i = parseInt(node.getAttribute("data-i"), 10);
+      var d = data[i];
+      return tipBody(d.name, [{ name: "Value", value: Number(d.value) || 0, color: accent }]);
+    });
+    register(el, renderVersionBars, opts);
+  }
+
+  // ----- Funnel ------------------------------------------------------------
+  // Centered tapered bars; each row shows stage name, value, and conversion %
+  // from the previous stage. Data ordered top-to-bottom (largest → smallest).
+  // opts: { data:[{name, value}], showConversion?=true, color? }
+  function renderFunnel(targetEl, opts) {
+    var el = typeof targetEl === "string" ? document.getElementById(targetEl) : targetEl;
+    if (!el) return;
+    var data = opts.data || [];
+    var showConv = opts.showConversion !== false;
+    var W = 800;
+    var rowH = 44, gap = 6;
+    var H = Math.max(120, data.length * (rowH + gap) + 12);
+    var PAD = { top: 6, right: 16, bottom: 6, left: 16 };
+    var plotW = W - PAD.left - PAD.right;
+    var cx = W / 2;
+    var maxVal = data.reduce(function (m, d) { return Math.max(m, Number(d.value) || 0); }, 0) || 1;
+    var accent     = resolveColor(opts.color || "--vista-accent", "#6E3FF3");
+    var textColor  = resolveColor("--vista-text",        "#F4F4F7");
+    var textMuted  = resolveColor("--vista-text-muted",  "#A7A7B5");
+    var textSubtle = resolveColor("--vista-text-subtle", "#6D6D7D");
+
+    var bars = data.map(function (d, i) {
+      var y = PAD.top + i * (rowH + gap);
+      var v = Number(d.value) || 0;
+      var w = Math.max(40, (v / maxVal) * plotW); // floor at 40px so smallest stage is still legible
+      var x = cx - w / 2;
+      // Conversion from previous row
+      var convStr = "";
+      if (showConv && i > 0) {
+        var prev = Number(data[i - 1].value) || 0;
+        var pct = prev > 0 ? Math.round((v / prev) * 1000) / 10 : 0;
+        convStr = pct.toFixed(1) + "% from " + data[i - 1].name;
+      }
+      // Stage label inside bar (left), value (right)
+      return '<rect class="v-funnel-stage" data-i="' + i + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + rowH +
+               '" fill="' + accent + '" fill-opacity="' + (0.85 - i * 0.08).toFixed(2) +
+               '" rx="8" ry="8" pointer-events="all"/>' +
+             '<text x="' + (x + 14) + '" y="' + (y + rowH/2 - 2) + '" fill="' + textColor +
+               '" font-size="12.5" font-weight="600" dominant-baseline="middle" pointer-events="none">' + d.name + '</text>' +
+             '<text x="' + (x + w - 14) + '" y="' + (y + rowH/2 - 2) + '" fill="' + textColor +
+               '" font-size="14" font-weight="600" text-anchor="end" dominant-baseline="middle" pointer-events="none"' +
+               ' style="font-variant-numeric:tabular-nums">' + v.toLocaleString() + '</text>' +
+             (convStr ?
+               '<text x="' + (x + w - 14) + '" y="' + (y + rowH/2 + 13) + '" fill="' + textSubtle +
+                 '" font-size="10.5" text-anchor="end" dominant-baseline="middle" pointer-events="none">' + convStr + '</text>'
+               : "");
+    }).join("");
+
+    el.innerHTML =
+      '<div class="vista-chart" style="aspect-ratio:' + W + '/' + H + ';min-height:' + Math.round(H*0.7) + 'px">' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '">' + bars + '</svg></div>';
+    attachTracker(el, ".v-funnel-stage", function (node) {
+      var i = parseInt(node.getAttribute("data-i"), 10);
+      var d = data[i];
+      var v = Number(d.value) || 0;
+      var rows = [{ name: "Value", value: v, color: accent }];
+      if (i > 0) {
+        var prev = Number(data[i - 1].value) || 0;
+        var pct = prev > 0 ? Math.round((v / prev) * 1000) / 10 : 0;
+        rows.push({ name: "From " + data[i - 1].name, value: pct + "%", color: textSubtle });
+      }
+      var first = Number(data[0].value) || 0;
+      if (first > 0 && i > 0) {
+        var topPct = Math.round((v / first) * 1000) / 10;
+        rows.push({ name: "Of top stage", value: topPct + "%", color: textSubtle });
+      }
+      return tipBody(d.name, rows);
+    });
+    register(el, renderFunnel, opts);
+  }
+
+  // ----- Heatmap matrix ----------------------------------------------------
+  // Row × column grid colored by value intensity. Use for Cross-Team
+  // Dependencies, Renewal Forecast risk-by-tier, etc.
+  // opts: { rows:[name,...], cols:[name,...], data:[[v,v,...],...]   // rows × cols
+  //         color?="--vista-danger", unit?="" }
+  function renderHeatmap(targetEl, opts) {
+    var el = typeof targetEl === "string" ? document.getElementById(targetEl) : targetEl;
+    if (!el) return;
+    var rows = opts.rows || [];
+    var cols = opts.cols || [];
+    var data = opts.data || [];
+    var unit = opts.unit || "";
+    var baseColor = resolveColor(opts.color || "--vista-danger", "#F87171");
+    var textColor   = resolveColor("--vista-text",          "#F4F4F7");
+    var textMuted   = resolveColor("--vista-text-muted",    "#A7A7B5");
+    var textSubtle  = resolveColor("--vista-text-subtle",   "#6D6D7D");
+    var borderColor = resolveColor("--vista-border",        "#26262F");
+    var surface     = resolveColor("--vista-surface",       "#15151C");
+
+    // flat max for intensity scale
+    var max = 0;
+    data.forEach(function (row) {
+      row.forEach(function (v) { if (typeof v === "number" && v > max) max = v; });
+    });
+    if (max === 0) max = 1;
+
+    // Build as an HTML table — easier to size with row/col labels than SVG grid.
+    var thead = '<thead><tr><th></th>' + cols.map(function (c) {
+      return '<th style="font-size:10.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:' +
+             textSubtle + ';padding:6px 8px;text-align:center">' + c + '</th>';
+    }).join("") + '</tr></thead>';
+
+    var tbody = '<tbody>' + rows.map(function (rName, ri) {
+      var cells = (data[ri] || []).map(function (v, ci) {
+        var n = Number(v) || 0;
+        var intensity = Math.min(1, n / max);
+        var bg = intensity > 0
+          ? "color-mix(in oklab, " + baseColor + " " + Math.round(intensity * 80 + 6) + "%, transparent)"
+          : surface;
+        var fg = intensity > 0.4 ? textColor : textMuted;
+        var label = n > 0 ? n.toLocaleString() + unit : "";
+        return '<td class="v-heat-cell" data-r="' + ri + '" data-c="' + ci + '" style="background:' + bg + ';color:' + fg +
+               ';padding:10px 8px;text-align:center;font-size:12.5px;font-weight:' +
+               (n > 0 ? 600 : 400) + ';font-variant-numeric:tabular-nums;border:1px solid ' + borderColor +
+               ';min-width:48px;cursor:default">' + label + '</td>';
+      }).join("");
+      return '<tr><th style="padding:8px 12px;text-align:right;color:' + textColor +
+             ';font-size:12.5px;font-weight:600;border:1px solid ' + borderColor + '">' + rName + '</th>' +
+             cells + '</tr>';
+    }).join("") + '</tbody>';
+
+    el.innerHTML =
+      '<div style="overflow-x:auto;position:relative"><table style="border-collapse:separate;border-spacing:0;width:100%">' +
+        thead + tbody +
+      '</table></div>';
+    attachTracker(el, ".v-heat-cell", function (node) {
+      var ri = parseInt(node.getAttribute("data-r"), 10);
+      var ci = parseInt(node.getAttribute("data-c"), 10);
+      var n = Number((data[ri] || [])[ci]) || 0;
+      return tipBody(rows[ri] + " → " + cols[ci], [
+        { name: "Value", value: n.toLocaleString() + unit, color: baseColor }
+      ]);
+    });
+    register(el, renderHeatmap, opts);
+  }
+
+  // ----- Shell builders (return HTML strings the model can paste) ---------
+  function header(opts) {
+    var theme = opts.theme || "dark";
+    var sub = opts.sub ? '<div class="vista-sub">' + opts.sub + '</div>' : "";
+    var kicker = opts.kicker ? '<div class="vista-kicker">' + opts.kicker + '</div>' : "";
+    return '<header class="vista-header"><div class="vista-header-lockup">' +
+      wordmark(theme, 26) +
+      '<span class="vista-header-divider"></span>' +
+      '<div>' + kicker +
+      '<h1 class="vista-title">' + (opts.title || "") + '</h1>' +
+      sub + '</div></div></header>';
+  }
+  function footer(opts) {
+    var theme = opts.theme || "dark";
+    return '<footer class="vista-footer">' +
+      '<div class="vista-footer-lockup">' + logomark(theme, 20) +
+      '<span>Generated by <strong style="color:var(--vista-text-muted)">VISTA</strong></span></div>' +
+      '<div class="vista-footer-source">' + (opts.source || "") + '</div>' +
+      '<div class="vista-footer-page">' + (opts.page || "") + '</div>' +
+      '</footer>';
+  }
+
+  // Set theme + accent on <body> in one call. CSS tokens, surfaces, and brand
+  // SVGs (currentColor + [data-theme] selectors) flip immediately. Charts then
+  // re-render using the new resolved colors via the registry. Persist user
+  // preference upstream via pack memory_update (vista_beta_theme_preference) per
+  // SKILL.md.
+  function setTheme(theme, accent) {
+    if (!document.body) return;
+    if (theme)  document.body.setAttribute("data-theme",  theme);
+    if (accent) document.body.setAttribute("data-accent", accent);
+    // Defer one frame so the browser applies the new CSS vars before we read
+    // them via getComputedStyle in the chart renderers.
+    requestAnimationFrame(rerenderAll);
+  }
+
+  return {
+    renderTrendLine: renderTrendLine,
+    renderStackedHBar: renderStackedHBar,
+    renderDonut: renderDonut,
+    renderVersionBars: renderVersionBars,
+    renderFunnel: renderFunnel,
+    renderHeatmap: renderHeatmap,
+    wordmark: wordmark,
+    logomark: logomark,
+    header: header,
+    footer: footer,
+    setTheme: setTheme,
+    rerenderAll: rerenderAll,
+    resolveColor: resolveColor,
+    chartPalette: chartPalette,
+    fmtNum: fmtNum,
+  };
+})();
+</script>
+
+<!-- ============================================================ -->
+<!-- END VISTA HTML PRIMITIVES                                    -->
+<!-- ============================================================ -->
+
+
+<!--
+USAGE EXAMPLE — do not include this in real reports; it's documentation.
+
+The model emits a single complete HTML document via Cowork's HTML artifact tool.
+Structure:
+
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>VISTA · {Report Title}</title>
+    <!-- PASTE the BEGIN/END VISTA HTML PRIMITIVES block above verbatim here -->
+  </head>
+  <body class="vista-report" data-theme="dark" data-accent="mysql">
+    <div class="vista-container">
+      <!-- Header -->
+      <div id="hdr"></div>
+
+      <!-- Status banner -->
+      <div class="vista-banner vista-banner--good">
+        <span class="vista-banner-dot"></span>
+        <div>ON TRACK — 65,876 vs 65,564 required (+0.5%)</div>
+      </div>
+
+      <!-- Progress strip -->
+      <div class="vista-progress">
+        <div class="vista-progress-row">
+          <span>Baseline · 57,912</span>
+          <span style="color:var(--vista-text);font-weight:600">Current · 65,876</span>
+          <span>Target · 100,000</span>
+        </div>
+        <div class="vista-progress-bar">
+          <div class="vista-progress-fill" style="width:18.9%"></div>
+          <div class="vista-progress-pace" style="left:18.2%"></div>
+        </div>
+        <div class="vista-progress-row vista-progress-row--small">
+          <span>18.9% achieved</span>
+          <span>Pace · 18.2% elapsed</span>
+        </div>
+      </div>
+
+      <!-- KPI grid -->
+      <div class="vista-kpi-grid vista-kpi-grid--c5">
+        <div class="vista-kpi vista-kpi--headline vista-kpi--good">
+          <div class="vista-kpi-label">Current (Mar 26)</div>
+          <div class="vista-kpi-value">65,876</div>
+          <div class="vista-kpi-delta">↑ 8.1% vs Feb</div>
+        </div>
+        <div class="vista-kpi"><div class="vista-kpi-label">Baseline</div><div class="vista-kpi-value">57,912</div></div>
+        <div class="vista-kpi"><div class="vista-kpi-label">Target</div><div class="vista-kpi-value">100,000</div></div>
+        <div class="vista-kpi"><div class="vista-kpi-label">Growth needed</div><div class="vista-kpi-value">+34,124</div></div>
+        <div class="vista-kpi"><div class="vista-kpi-label">Monthly pace</div><div class="vista-kpi-value">+3,792/mo</div></div>
+      </div>
+
+      <!-- Chart -->
+      <div class="vista-card">
+        <div class="vista-card-title">Monthly Active PS Instances vs Target Pace</div>
+        <div id="chart-trend"></div>
+      </div>
+
+      <!-- Callout -->
+      <aside class="vista-callout">
+        <div class="vista-callout-label">Key finding</div>
+        <div class="vista-callout-body">
+          <ul>
+            <li>+0.5% above pace.</li>
+            <li>Acceleration is real — Feb→Mar +5,954.</li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Footer -->
+      <div id="ftr"></div>
+    </div>
+
+    <script>
+      document.getElementById("hdr").innerHTML = Vista.header({
+        kicker: "MYSQL · CASCADE",
+        title: "MySQL Adoption — Anchor + Supporting Signals",
+        sub: "Tracking Jan 1 – Dec 31, 2026 · Last complete month: Mar 2026 · Source: ClickHouse",
+        theme: "dark"
+      });
+      document.getElementById("ftr").innerHTML = Vista.footer({
+        source: "Source: ClickHouse · telemetryd.pillars_telemetry_phase_1 · Queried 2026-04-27 UTC",
+        theme: "dark"
+      });
+      Vista.renderTrendLine("chart-trend", {
+        data: [
+          { month: "Apr 25", actual: 33022 },
+          { month: "May 25", actual: 35737 },
+          // ...
+          { month: "Mar 26", actual: 65876, target: 65564 }
+        ],
+        series: [
+          { key: "actual", name: "Active PS", area: true, color: "--vista-accent" },
+          { key: "target", name: "Target pace", dashed: true, color: "--vista-text-muted" }
+        ],
+        height: 320,
+        refLines: [
+          { y: 57912,  label: "Baseline 57,912" },
+          { y: 100000, label: "Target 100,000", color: "--vista-accent" }
+        ]
+      });
+    </script>
+  </body>
+  </html>
+-->

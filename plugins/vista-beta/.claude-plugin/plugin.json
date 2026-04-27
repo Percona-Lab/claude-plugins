@@ -1,0 +1,8 @@
+{
+  "name": "vista-beta",
+  "version": "2.0.0-beta.1",
+  "author": {"name": "Percona Lab"},
+  "description": "VISTA Beta: Visualized Intelligence from Sources, Trends & Analysis. Cross-functional business analysis reports with the new Percona-branded HTML artifact pipeline (full design system, hover tooltips, brand SVGs, print-friendly PDFs). Runs alongside the stable Vista plugin without conflict.",
+  "repository": "https://github.com/Percona-Lab/VISTA",
+  "license": "MIT"
+}
