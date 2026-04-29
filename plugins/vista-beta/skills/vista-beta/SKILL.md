@@ -267,11 +267,10 @@ These are the standard reports VISTA can generate. Users can request any of thes
 |---|---|---|
 | MySQL | PS, PXB, DISTMYSQL, PSQLADM | Percona Server for MySQL, XtraBackup, Distribution, ProxySQL |
 | PXC | PXC | Percona XtraDB Cluster |
-| MongoDB | PSMDB, PBM | Percona Server for MongoDB and Backup |
+| MongoDB | PSMDB, PBM, PCSM | Percona Server for MongoDB, Backup, and ClusterSync |
 | PMM | PMM | Percona Monitoring and Management |
 | PostgreSQL | PG, DISTPG | Percona Distribution for PostgreSQL |
 | Operators | K8SPS, K8SPXC, K8SPSMDB, K8SPG | All Kubernetes Operators (MySQL, PXC, MongoDB, PostgreSQL) |
-| ClusterSync | PCSM | ClusterSync for MongoDB |
 | Percona Toolkit | PT | Percona Toolkit |
 | Valkey | VK | Valkey (early stage) |
 | Packaging | PKG | Build and packaging infrastructure |

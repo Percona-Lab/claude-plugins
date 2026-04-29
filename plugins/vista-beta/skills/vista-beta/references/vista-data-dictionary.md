@@ -37,7 +37,7 @@ Single source of truth for how every Percona product maps across all three data 
 | MySQL Vector Capabilities | -- | n/a (not yet released) | n/a | PS (tracked within PS) | MySQL | MVP in development |
 | Percona Server for MongoDB | PSMDB | `mongodb-server` | `psmdb` | PSMDB | MongoDB | Active |
 | Percona Backup for MongoDB | PBM | `mongodb-backup` | n/a | PBM | MongoDB | Active |
-| ClusterSync for MongoDB | PCSM | n/a | n/a | PCSM | MongoDB | Active |
+| Percona ClusterSync for MongoDB | PCSM | `percona-clustersync-mongodb` | n/a | PCSM | MongoDB | Active |
 | Percona Monitoring and Management | PMM | `pmm` | CH: `pmm_metrics` table | PMM | PMM | Active |
 | Percona Distribution for PostgreSQL | PG | `postgresql` | `postgresql` (CAVEAT: noisy data) | PG, DISTPG | PostgreSQL | Active |
 | Operator for MySQL (PS) | K8SPS | n/a | n/a | K8SPS | Operators | Active |
@@ -139,6 +139,7 @@ All download-specific fields are under the `parsed.*` namespace:
 | `pmm` | ~8M | Percona Monitoring and Management |
 | `mongodb-server` | ~6M | Percona Server for MongoDB |
 | `mysql-distribution-ps` | ~834K | MySQL distribution (PS variant) |
+| `percona-clustersync-mongodb` | ~700 | Percona ClusterSync for MongoDB |
 | `mongodb-backup` | ~574K | Percona Backup for MongoDB |
 | `mongodb-distribution` | ~193K | MongoDB distribution |
 | `mysql-distribution-pxc` | ~187K | MySQL distribution (PXC variant) |
