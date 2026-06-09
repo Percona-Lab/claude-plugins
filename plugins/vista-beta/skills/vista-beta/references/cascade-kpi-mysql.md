@@ -15,7 +15,7 @@ Also accepted (legacy / shorthand): "MySQL Cascade KPI", "MySQL KPI", "PS instan
 |---|---|---|---|---|---|
 | 1 | **Monthly Active PS Instances** | Anchor | 57,912 | 100,000 | growth-to-target |
 | 2 | **Active PXC Clusters** | Supporting | ~975 | ≥ 1,000 | floor (maintain above) |
-| 3 | **Active Operator-Deployed MySQL Instances** | Supporting | 2,692 | 9,000 | growth-to-target |
+| 3 | **Active Operator-Deployed MySQL Instances** | Supporting | 9,950 | 9,000 (already met — re-set) | growth-to-target |
 | 4 | **PACKAGE PS with PXB co-installed** | Supporting | 13,142 | 18,000 | growth-to-target |
 
 All measure the trailing 30-day window per month ("monthly active"). Cadence: monthly, last day of month. Period: Jan 1 – Dec 31, 2026. Owner: Dennis Kittrell.
@@ -118,22 +118,28 @@ WHERE product_family = 'pxc' AND create_date >= today() - 365
 
 | Field | Value |
 |-------|-------|
-| Metric (PS Operator) | distinct instances reporting under `product_family = 'operator_ps'` in `generic_reports` (telemetry naming convention, not the product name) |
+| Metric (PS Operator) | PS instances on RHEL UBI base images — `product_family = 'ps'` **AND** the `OS` metric value `IN ('el8','el9')`, in `pillars_telemetry_phase_1`. Verified in production: PS instances on `el8`/`el9` are 100% `pillar_deployment='DOCKER'`, i.e. the container/operator footprint. **Do NOT** use `generic_reports` / `operator_ps` — that stream is retired (last ingested 2024-05-15) and reads as zero/unavailable. |
 | Metric (PXC Operator) | PXC instances in `pillars_telemetry_phase_1` whose OS metric is `el8` or `el9` (the operator's RHEL UBI container base image). Used as a **proxy until distinct instrumentation is added** — flag this caveat in the report. |
 | Combined | sum of the two over a trailing 30-day window per month |
-| Baseline | **2,692** (Jan 2026) |
-| Target | **9,000** by Dec 31, 2026 |
-| Growth required | +6,307 |
-| Status thresholds | same growth-to-pace logic as the anchor |
+| Baseline | **9,950** (Jan 2026, UBI-proxy method). The old **2,692** baseline came from the retired `generic_reports` source and is **superseded**. |
+| Target | **9,000** by Dec 31, 2026 — but **already met** under the UBI-proxy method; the target should be re-set. |
+| Growth required | n/a — target already exceeded under the proxy method (re-baseline pending) |
+| Status thresholds | same growth-to-pace logic as the anchor (moot until target is re-set) |
 
 ### Query (combined)
 
 ```sql
--- PS Operator (generic_reports, naming = 'operator_ps')
+-- PS Operator proxy: PS instances on RHEL UBI base images (el8/el9).
+-- Verified in production: these are 100% pillar_deployment='DOCKER'.
+-- The OS metric key is literally 'OS' (uppercase) in the metrics array.
+-- Do NOT use generic_reports/operator_ps — retired, stale since 2024-05-15.
 SELECT toStartOfMonth(create_date) AS month,
        uniqExact(pillar_db_instance_id) AS ps_op_instances
-FROM telemetryd.generic_reports
-WHERE product_family = 'operator_ps'
+FROM telemetryd.pillars_telemetry_phase_1
+ARRAY JOIN metrics AS metric
+WHERE product_family = 'ps'
+  AND tupleElement(metric, 1) = 'OS'
+  AND tupleElement(metric, 2) IN ('el8', 'el9')
   AND create_date >= toStartOfMonth(today()) - INTERVAL 12 MONTH
   AND create_date < toStartOfMonth(today())
 GROUP BY month
@@ -156,14 +162,17 @@ ORDER BY month;
 
 Combined = ps_op_instances + pxc_op_instances per month.
 
-**Caveat to surface in the report**: "PXC Operator count is a proxy (RHEL UBI base image) until distinct telemetry instrumentation lands."
+**Caveat to surface in the report**: "Both operator counts (PS Operator and PXC Operator) are proxies — PS/PXC instances on the RHEL UBI base image (`OS` metric `el8`/`el9`) — until distinct operator telemetry instrumentation lands."
 
 ### On-track calculation
 
 ```
-months_elapsed = month_index (Jan = 0)
-required_at_pace = 2692 + 6308 * months_elapsed / 11
-status = ON TRACK if actual >= required; AT RISK within 2%; OFF TRACK > 2% below
+# UBI-proxy method: baseline 9,950 (Jan 2026) already exceeds the 9,000 target.
+# Pace math is moot until the target is re-set against the proxy baseline.
+# When a new target is set, use the anchor's growth-to-pace formula:
+#   required_at_pace = 9950 + (NEW_TARGET - 9950) * months_elapsed / 11   (Jan = 0)
+#   status = ON TRACK if actual >= required; AT RISK within 2%; OFF TRACK > 2% below
+# Until then, report status as TARGET MET (re-baseline pending).
 ```
 
 ---
@@ -269,18 +278,18 @@ EXACT names in `telemetryd.pillars_telemetry_phase_1`. Do NOT guess or add prefi
 | `pillar_version` | LowCardinality(String) | Version, e.g. `8.4.3-3` |
 | `create_date` | Date | Partition-aligned date — use for range filters |
 | `create_time` | DateTime | Full timestamp — only when sub-day precision needed |
-| `metrics` | Array(Tuple(String,String)) | ARRAY JOIN (or `arrayExists`) to extract per-metric values like `db_replication_id`, `os_release_id`, `installed_packages` |
+| `metrics` | Array(Tuple(String,String)) | ARRAY JOIN (or `arrayExists`) to extract per-metric values like `db_replication_id`, `OS` (values e.g. `el8`/`el9`), `installed_packages` |
 | `pillar_deployment` | LowCardinality(String) | Deployment type. Values include `'PACKAGE'` (uppercase). Filter for the PS+PXB co-install signal. |
 | `host_instance_id` | String | Distinct host. Use for the PS+PXB signal — counts hosts (not DB instances). |
 
-For Operator (PS Operator only), table is `telemetryd.generic_reports` with `product_family='operator_ps'`.
+**Operator-deployed MySQL** (signal 3) is measured entirely from `telemetryd.pillars_telemetry_phase_1` using the RHEL UBI base-image proxy (`OS` metric `IN ('el8','el9')`) for both PS and PXC operators. The legacy `telemetryd.generic_reports` / `product_family='operator_ps'` stream is **retired** (last ingested 2024-05-15) — do not query it.
 
 ---
 
 ## Data quality
 
 - **Recent-month ingestion check** (applies to all four signals): before trusting the latest month, compare its monthly-active count to the prior 3 months. A drop greater than ~30% means ingestion is incomplete — drop it and use the prior complete month as headline. Show `<Callout variant="warning" label="Data quality">` rather than a false OFF TRACK.
-- **PXC Operator proxy** (signal 3): RHEL UBI image is a proxy for "running under the operator." Replace with first-class metric when available.
+- **Operator proxy** (signal 3): the RHEL UBI base image (`OS` metric `el8`/`el9`) is a proxy for "running under the operator" for **both** PS and PXC operators — PS instances on `el8`/`el9` are 100% `DOCKER`. The retired `generic_reports`/`operator_ps` stream (stale since 2024-05-15) is no longer used. Replace the proxy with first-class operator instrumentation when available.
 - **PACKAGE+PXB co-install** (signal 4): no cross-row join — PXB presence is detected via the `installed_packages` key in the PS row's `metrics` array. Watch the PXB-in-PACKAGE-PS ratio (currently ~28–32%, floor 25%) alongside the absolute count.
 
 ---

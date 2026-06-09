@@ -491,7 +491,7 @@ ORDER BY month
 - `pmm_metrics_pg_available_extensions` / `pmm_metrics_pg_installed_extensions` — PostgreSQL extension tracking
 - `pmm_metrics_advisor_checks_*` — PMM Advisor check execution stats
 - `pmm3_server_info` / `pmm3_server_info_mv` — PMM 3 server metadata
-- `generic_reports` — Generic report data
+- `generic_reports` — Generic report data (**RETIRED — last ingested 2024-05-15; do not use.** The former `product_family='operator_ps'` operator stream lived here; operator-deployed MySQL is now measured from `pillars_telemetry_phase_1` via the RHEL UBI base-image proxy, `OS` metric `el8`/`el9`)
 - `pmm_metrics_view` — Convenience view over pmm_metrics
 - `dockerhub_metrics` — Docker Hub pull stats (**Oct-Nov 2023 only, historical snapshot**)
 
