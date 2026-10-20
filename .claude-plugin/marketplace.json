@@ -35,6 +35,12 @@
       "description": "CAIRN — Create Any Integration, Run Naturally. Scaffold production-ready MCP servers for any domain: API integrations, doc search, or minimal starters.",
       "source": "./plugins/cairn",
       "category": "developer-tools"
+    },
+    {
+      "name": "atlassian-artifacts",
+      "description": "Publish Claude's HTML pages to Atlassian Artifacts on percona.atlassian.net by default, so any Perconian can open them across Claude workspaces. Asks Restricted, Anyone with the link, or Open for each page.",
+      "source": "./plugins/atlassian-artifacts",
+      "category": "productivity"
     }
   ]
 }

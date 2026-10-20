@@ -1,0 +1,8 @@
+{
+  "name": "atlassian-artifacts",
+  "version": "1.0.0",
+  "author": {"name": "Percona Lab"},
+  "description": "Publish Claude's HTML pages to Atlassian Artifacts on percona.atlassian.net by default, so any Perconian can open them, whichever Claude workspace they use. Asks Restricted, Anyone with the link, or Open for each new page.",
+  "repository": "https://github.com/Percona-Lab/claude-plugins",
+  "license": "MIT"
+}
