@@ -1,36 +1,60 @@
 # Atlassian Artifacts
 
-Makes Claude publish the HTML pages it makes (reports, dashboards, explainers, decks, prototypes) to **Atlassian Artifacts on percona.atlassian.net** instead of claude.ai Artifacts.
+Makes Claude publish the HTML pages it makes (reports, dashboards, explainers, decks, prototypes) to **Atlassian Artifacts on percona.atlassian.net** instead of claude.ai Artifacts. Any Perconian can open those, whichever Claude workspace they're in.
 
-## Why
+## Install
 
-Percona runs several separate Claude workspaces, and a claude.ai Artifact made in one can't be opened from another. Every Perconian can open an Atlassian artifact through SSO. Publishing there makes sharing across workspaces just a link.
+Pick **one**. Option 1 covers chat, Cowork and Claude Code at once.
 
-## What it does
+### 1. In claude.ai (recommended)
 
-The plugin has one skill, `publish`. It uses Atlassian's own connector and doesn't bundle one.
+1. In claude.ai (web or desktop app), open **Customize → Plugins → Add → Add marketplace**.
+2. Enter `Percona-Lab/claude-plugins`.
+3. Find **atlassian-artifacts** and click **Install**.
 
-- **The default for HTML pages.** Ask for a claude.ai Artifact and you get one instead.
-- **Asks who should see each new page:**
-  - **Restricted** (the default): only you and the people you invite. Claude can invite named people.
-  - **Anyone with the link:** any Perconian who has the link.
-  - **Open:** any Perconian, and the page shows up in search.
-- **Same link for updates.** Updating a page publishes a new version at the same link.
-- **Share link only.** Claude returns only the `/share` link, never the raw download link, which works without sign-in for 24 hours.
+The install is saved to your Claude account. It works in chat and Cowork, and in Claude Code when you're signed in with the same account.
 
-Atlassian's API can't set **Anyone with the link** or **Open**. For those, Claude gives you the link, and you choose the option under **Share → General access**.
+### 2. Upload the skill file
 
-Tested end to end from Claude Code, Cowork and claude.ai chat: JavaScript runs, and the page needs an Atlassian sign-in to view.
+If you can't add a marketplace:
 
-## Setup (each Claude workspace)
+1. Download **[atlassian-artifacts-skill.zip](https://github.com/Percona-Lab/claude-plugins/raw/main/plugins/atlassian-artifacts/atlassian-artifacts-skill.zip)**.
+2. In claude.ai, open **Customize → Skills → + → Create skill → Upload a skill**.
+3. Choose the zip.
 
-1. **Allow the upload domain.** An admin adds `tdp-os.services.atlassian.com` under *Organization settings → Capabilities* (allowed domains). Claude in chat can't upload without it.
-2. **Install the plugin.**
-   - **claude.ai:** add it under *Organization settings → Plugins & skills* and set it to **Installed by default**.
-   - **Claude Code:** run `/plugin install atlassian-artifacts@percona-lab`.
-3. **Connect Atlassian.** Each person connects the Atlassian connector with access to **percona.atlassian.net**.
+### 3. Claude Code only
+
+Paste this into a terminal:
+
+```bash
+claude plugin install atlassian-artifacts --marketplace Percona-Lab/claude-plugins
+```
+
+Needs Claude Code 2.1.292 or later; run `claude --version` to check. If cloning fails, use `--marketplace https://github.com/Percona-Lab/claude-plugins.git` instead.
+
+## One-time setup
+
+- **Connect Atlassian.** In claude.ai, open **Customize → Connectors**, connect **Atlassian**, and include the **percona.atlassian.net** site.
+- **Chat only:** your Claude workspace must allow `tdp-os.services.atlassian.com`. A workspace admin adds it once under **Organization settings → Capabilities**. Without it, Claude tells you the upload was blocked.
+
+## Use it
+
+Ask Claude for any HTML page, for example "make a one-page summary of this and publish it". Claude then:
+
+1. Asks who should see it:
+   - **Restricted** (the default): only you and the people you invite.
+   - **Anyone with the link:** any Perconian who has the link.
+   - **Open:** any Perconian, and the page shows up in search.
+2. Publishes the page and gives you the link.
+
+Atlassian's API can't set **Anyone with the link** or **Open**. For those, open the link and choose the option under **Share → General access**.
+
+To update a page, ask Claude to update it. It publishes a new version at the same link.
+
+To get a claude.ai Artifact instead, just ask for one.
 
 ## Notes
 
-- There's no delete tool. Delete artifacts in the Atlassian web interface.
-- Links use IDs (`/artifacts/<id>/share`), not readable names.
+- **Why it exists:** Percona has several Claude workspaces, and claude.ai Artifacts can't be shared between them.
+- **Deleting:** there's no delete tool. Delete artifacts in the Atlassian web interface.
+- **Maintainers:** after editing `skills/publish/SKILL.md`, run `./package.sh` and commit the rebuilt zip.
